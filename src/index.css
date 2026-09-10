@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+    /* =========================
+       Fonts
+    ========================= */
+    --font-montserrat: "Montserrat", sans-serif;
+    --font-urbanist: "Urbanist", sans-serif;
+    --font-inter: "Inter", sans-serif;
+
+    /* =========================
+       Brand Colors
+    ========================= */
+    --color-brand-primary: #a020f0;
+    --color-brand-secondary: #6415d8;
+    --color-brand-accent: #7c3aed;
+
+    /* =========================
+       Background
+    ========================= */
+    --color-app-bg: #f8f6ff;
+    --color-surface: #ffffff;
+    --color-surface-soft: #ffffff73;
+
+    /* =========================
+       Text
+    ========================= */
+    --color-text-primary: #181321;
+    --color-text-secondary: #4b4655;
+    --color-text-muted: #9ca3af;
+
+    /* =========================
+       Border
+    ========================= */
+    --color-border: #ffffffcc;
+    --color-border-soft: #ede9fe;
+
+    /* =========================
+       Purple Shades
+    ========================= */
+    --color-purple-soft: #f3e8ff;
+    --color-purple-light: #e9d5ff;
+    --color-purple-medium: #c084fc;
+    --color-purple-dark: #6d28d9;
+
+    /* =========================
+       Glow
+    ========================= */
+    --color-glow-purple: #c084fc;
+    --color-glow-fuchsia: #f0abfc;
+    --color-glow-violet: #a78bfa;
+}
+.ant-select,
+.ant-select-selection-placeholder,
+.ant-select-selection-item,
+.ant-select-dropdown,
+.ant-select-item-option-content {
+
+  font-family: "Urbanist", sans-serif !important;
+
+}
