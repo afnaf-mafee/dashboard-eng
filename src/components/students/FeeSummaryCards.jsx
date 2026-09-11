@@ -5,7 +5,7 @@ import {
   HiOutlineCheckCircle,
 } from "react-icons/hi2";
 
-const FeeSummaryCards = () => {
+const FeeSummaryCards = ({total}) => {
   const cards = [
     {
       title: "Total Collected",
@@ -25,7 +25,7 @@ const FeeSummaryCards = () => {
 
     {
       title: "Total Students",
-      value: "120",
+      value: total,
       sub: "Active students",
 
       icon: <HiOutlineUsers />,

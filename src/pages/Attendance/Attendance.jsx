@@ -1,3 +1,5 @@
+import React, { useMemo, useState } from "react";
+
 import {
   Table,
   Button,
@@ -5,586 +7,1233 @@ import {
   Select,
   Tag,
   DatePicker,
-  Card,
   message,
+  Spin,
 } from "antd";
 
 import {
   SearchOutlined,
-  SendOutlined,
   CalendarOutlined,
+  CheckOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 
-import { useState } from "react";
-import { FiSend } from "react-icons/fi";
-import { MdNat } from "react-icons/md";
+import dayjs from "dayjs";
+
 import { GrGroup } from "react-icons/gr";
+import { FiSend } from "react-icons/fi";
+import {
+  useGetStudentsQuery,
+  useMarkAttendanceMutation,
+} from "../../redux/services/studentsApiServices/studentApiServices.js";
+
 
 const Attendance = () => {
+  // =========================
+  // DATE
+  // =========================
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+
+  // =========================
+  // SEARCH
+  // =========================
+  const [searchText, setSearchText] = useState("");
+
+  // =========================
+  // CLASS
+  // =========================
+  const [selectedClass, setSelectedClass] = useState("all");
+
+  // =========================
+  // SELECTED STUDENTS
+  // =========================
   const [selectedStudents, setSelectedStudents] = useState([]);
-  console.log(selectedStudents);
 
-  const students = [
-    {
-      key: "1",
-      name: "Sakib",
-      studentId: "429535",
-      className: "One",
-      batch: "A",
-      guardian: "Kar3im2 Ahmed",
-      phone: "01373242373",
-      status: "Present",
-    },
+  // =========================
+  // MESSAGE
+  // =========================
+  const [smsMessage, setSmsMessage] = useState(
+    "Your child was absent today. Please contact the school if needed."
+  );
 
-    {
-      key: "2",
-      name: "sharif",
-      studentId: "212580",
-      className: "Two",
-      batch: "A",
-      guardian: "Kar3im2 Ahmed",
-      phone: "01373242372",
-      status: "Absent",
-    },
+  // =========================
+  // GET STUDENTS
+  // =========================
+  const {
+    data,
+    isLoading,
+    isFetching,
+  } = useGetStudentsQuery();
 
-    {
-      key: "3",
-      name: "afnaf",
-      studentId: "759546",
-      className: "two",
-      batch: "A",
-      guardian: "Kar3im2 Ahmed",
-      phone: "01372242277",
-      status: "Present",
-    },
+  // =========================
+  // ATTENDANCE MUTATION
+  // =========================
+  const [
+    markAttendance,
+    { isLoading: attendanceLoading },
+  ] = useMarkAttendanceMutation();
 
-    {
-      key: "4",
-      name: "da332344ef",
-      studentId: "697130",
-      className: "two",
-      batch: "A",
-      guardian: "Kar3im2 Ahmed",
-      phone: "01372242777",
-      status: "Absent",
-    },
-  ];
 
-  // Select checkbox handler
+  // =========================
+  // STUDENT DATA
+  // =========================
+  const students = data?.data || [];
 
-  const rowSelection = {
-    selectedRowKeys: selectedStudents.map((student) => student.key),
 
-    onChange: (selectedKeys, selectedRows) => {
-      setSelectedStudents(selectedRows);
-    },
+  // =========================
+  // SELECTED DATE
+  // =========================
+  const dateString =
+    selectedDate.format("YYYY-MM-DD");
+
+
+  // =========================
+  // GET STUDENT ATTENDANCE
+  // FOR SELECTED DATE
+  // =========================
+  const getAttendance = (student) => {
+    if (!student?.attendance?.length) {
+      return null;
+    }
+
+    return student.attendance.find((item) => {
+      return (
+        dayjs(item.date).format("YYYY-MM-DD") ===
+        dateString
+      );
+    });
   };
 
-  // Select all absent
 
+  // =========================
+  // FILTER STUDENTS
+  // =========================
+  const filteredStudents = useMemo(() => {
+    return students.filter((student) => {
+
+      const search =
+        searchText.trim().toLowerCase();
+
+      const matchesSearch =
+        !search ||
+        student.name
+          ?.toLowerCase()
+          .includes(search) ||
+        String(student.studentId)
+          .toLowerCase()
+          .includes(search) ||
+        student.phone?.includes(search);
+
+      const matchesClass =
+        selectedClass === "all" ||
+        student.className === selectedClass;
+
+      return (
+        matchesSearch &&
+        matchesClass
+      );
+    });
+  }, [
+    students,
+    searchText,
+    selectedClass,
+  ]);
+
+
+  // =========================
+  // CLASS OPTIONS
+  // =========================
+  const classOptions = useMemo(() => {
+
+    const classes = [
+      ...new Set(
+        students
+          .map((student) => student.className)
+          .filter(Boolean)
+      ),
+    ];
+
+    return [
+      {
+        value: "all",
+        label: "All Classes",
+      },
+
+      ...classes.map((className) => ({
+        value: className,
+        label: className,
+      })),
+    ];
+
+  }, [students]);
+
+
+  // =========================
+  // MARK ATTENDANCE
+  // =========================
+  const handleAttendance = async (
+    student,
+    status
+  ) => {
+
+    try {
+
+      await markAttendance({
+        id: student._id,
+
+        attendanceData: {
+          date: dateString,
+          status: status,
+          note: "",
+        },
+
+      }).unwrap();
+
+
+      message.success(
+        `${student.name} marked as ${status}`
+      );
+
+
+      // =========================
+      // ABSENT হলে SELECT হবে
+      // =========================
+      if (status === "Absent") {
+
+        setSelectedStudents((prev) => {
+
+          const alreadySelected =
+            prev.some(
+              (item) =>
+                item._id === student._id
+            );
+
+          if (alreadySelected) {
+            return prev;
+          }
+
+          return [
+            ...prev,
+            student,
+          ];
+        });
+
+      }
+
+
+      // =========================
+      // PRESENT হলে
+      // SELECTED থেকে REMOVE
+      // =========================
+      if (status === "Present") {
+
+        setSelectedStudents((prev) =>
+          prev.filter(
+            (item) =>
+              item._id !== student._id
+          )
+        );
+
+      }
+
+    } catch (error) {
+
+      message.error(
+        error?.data?.message ||
+          error?.error ||
+          "Attendance update failed"
+      );
+
+    }
+  };
+
+
+  // =========================
+  // TABLE ROW SELECTION
+  // =========================
+  const rowSelection = {
+
+    selectedRowKeys:
+      selectedStudents.map(
+        (student) => student._id
+      ),
+
+    onChange: (
+      selectedRowKeys,
+      selectedRows
+    ) => {
+
+      setSelectedStudents(
+        selectedRows
+      );
+
+    },
+
+  };
+
+
+  // =========================
+  // SELECT ALL ABSENT
+  // =========================
   const handleSelectAllAbsent = () => {
-    const absentStudents = students.filter(
-      (student) => student.status === "Absent",
+
+    const absentStudents =
+      filteredStudents.filter(
+        (student) => {
+
+          const attendance =
+            getAttendance(student);
+
+          return (
+            attendance?.status ===
+            "Absent"
+          );
+
+        }
+      );
+
+
+    setSelectedStudents(
+      absentStudents
     );
 
-    setSelectedStudents(absentStudents);
-  };
 
-  // Send message
+    if (
+      absentStudents.length === 0
+    ) {
 
-  const handleSendMessage = () => {
-    if (selectedStudents.length === 0) {
-      message.warning("Please select students first");
+      message.info(
+        "No absent students found for this date"
+      );
 
       return;
     }
 
-    const receivers = selectedStudents.map((student) => student.phone);
 
-    console.log("Message sending to:", receivers);
+    message.success(
+      `${absentStudents.length} absent students selected`
+    );
 
-    message.success(`Message sent to ${selectedStudents.length} students`);
   };
 
-  const columns = [
-    {
-      title: "",
-      width: 50,
-    },
 
+  // =========================
+  // CLEAR SELECTION
+  // =========================
+  const handleClearSelection = () => {
+
+    setSelectedStudents([]);
+
+  };
+
+
+  // =========================
+  // SEND MESSAGE
+  // =========================
+  const handleSendMessage = async () => {
+
+    if (
+      selectedStudents.length === 0
+    ) {
+
+      message.warning(
+        "Please select students first"
+      );
+
+      return;
+    }
+
+
+    if (
+      !smsMessage.trim()
+    ) {
+
+      message.warning(
+        "Please write a message"
+      );
+
+      return;
+    }
+
+
+    // =========================
+    // SMS RECIPIENTS
+    // =========================
+    const recipients =
+      selectedStudents.map(
+        (student) => ({
+
+          studentId:
+            student.studentId,
+
+          studentName:
+            student.name,
+
+          guardian:
+            student.guardian,
+
+          phone:
+            student.phone,
+
+        })
+      );
+
+
+    // =========================
+    // এখন তোমার SMS API-তে
+    // এই data পাঠাবে
+    // =========================
+    console.log("SMS DATA:", {
+
+      date: dateString,
+
+      message: smsMessage,
+
+      recipients,
+
+    });
+
+
+    /*
+      Example:
+
+      await sendBulkSMS({
+        message: smsMessage,
+        recipients,
+      }).unwrap();
+    */
+
+
+    message.success(
+      `Message prepared for ${selectedStudents.length} guardians`
+    );
+
+  };
+
+
+  // =========================
+  // TABLE COLUMNS
+  // =========================
+  const columns = [
+
+    // =========================
+    // NAME
+    // =========================
     {
-      title: "Name",
+      title: "Student",
+
       dataIndex: "name",
 
       render: (text) => (
-        <div
-          className="
-flex items-center gap-3"
-        >
+
+        <div className="flex items-center gap-3">
+
           <div
             className="
-           
-w-10 h-10 rounded-full
-bg-gradient-to-br
-from-purple-600
-to-purple-400
-text-white
-font-bold
-flex items-center
-justify-center"
+              w-10
+              h-10
+              rounded-full
+              flex
+              items-center
+              justify-center
+              bg-gradient-to-br
+              from-purple-600
+              to-purple-400
+              text-white
+              font-bold
+            "
           >
-            {text.charAt(0)}
+            {text
+              ?.charAt(0)
+              ?.toUpperCase()}
           </div>
 
-          <span
-            className="
-font-semibold"
-          >
+          <span className="font-semibold">
             {text}
           </span>
+
         </div>
+
       ),
+
     },
 
+
+    // =========================
+    // STUDENT ID
+    // =========================
     {
       title: "Student ID",
       dataIndex: "studentId",
     },
 
+
+    // =========================
+    // CLASS
+    // =========================
     {
       title: "Class",
+
       dataIndex: "className",
 
       render: (value) => (
+
         <Tag
           className="
-!border-0
-!rounded-lg
-!bg-purple-100
-!text-purple-700
-!font-semibold"
+            !border-0
+            !bg-purple-100
+            !text-purple-700
+            !rounded-lg
+            !font-semibold
+          "
         >
           {value}
         </Tag>
+
       ),
+
     },
 
+
+    // =========================
+    // SECTION
+    // =========================
     {
-      title: "Batch",
-      dataIndex: "batch",
+      title: "Section",
+      dataIndex: "section",
     },
 
+
+    // =========================
+    // GUARDIAN
+    // =========================
     {
       title: "Guardian",
       dataIndex: "guardian",
     },
 
+
+    // =========================
+    // PHONE
+    // =========================
     {
       title: "Phone",
       dataIndex: "phone",
     },
 
-    //     {
-    //       title: "Status",
 
-    //       render: (_, record) =>
-    //         record.status === "Absent" ? (
-    //           <Tag
-    //             className="
-    // !rounded-full
-    // !border-0
-    // !bg-red-100
-    // !text-red-600
-    // !font-semibold"
-    //           >
-    //             ● Absent
-    //           </Tag>
-    //         ) : (
-    //           <Tag
-    //             className="
-    // !rounded-full
-    // !border-0
-    // !bg-green-100
-    // !text-green-600
-    // !font-semibold"
-    //           >
-    //             ● Present
-    //           </Tag>
-    //         ),
-    //     },
+    // =========================
+    // ATTENDANCE BUTTON
+    // =========================
+    {
+      title: "Mark Attendance",
 
-    //     {
-    //       title: "Action",
+      key: "attendance",
 
-    //       render: () => (
-    //         <span
-    //           className="
-    // text-xl"
-    //         >
-    //           ⋮
-    //         </span>
-    //       ),
-    //     },
+      render: (_, record) => {
+
+        const attendance =
+          getAttendance(record);
+
+        const status =
+          attendance?.status;
+
+
+        return (
+
+          <div
+            className="
+              flex
+              items-center
+              gap-2
+            "
+          >
+
+            {/* PRESENT */}
+
+            <Button
+              size="small"
+              icon={
+                <CheckOutlined />
+              }
+              loading={
+                attendanceLoading
+              }
+              onClick={() =>
+                handleAttendance(
+                  record,
+                  "Present"
+                )
+              }
+              className={`
+                !rounded-lg
+
+                ${
+                  status ===
+                  "Present"
+
+                    ? "!bg-green-500 !border-green-500 !text-white"
+
+                    : "!border-green-300 !text-green-600"
+                }
+              `}
+            >
+              Present
+            </Button>
+
+
+            {/* ABSENT */}
+
+            <Button
+              size="small"
+              icon={
+                <CloseOutlined />
+              }
+              loading={
+                attendanceLoading
+              }
+              onClick={() =>
+                handleAttendance(
+                  record,
+                  "Absent"
+                )
+              }
+              className={`
+                !rounded-lg
+
+                ${
+                  status ===
+                  "Absent"
+
+                    ? "!bg-red-500 !border-red-500 !text-white"
+
+                    : "!border-red-300 !text-red-600"
+                }
+              `}
+            >
+              Absent
+            </Button>
+
+          </div>
+
+        );
+
+      },
+
+    },
+
+
+    // =========================
+    // CURRENT STATUS
+    // =========================
+    {
+      title: "Status",
+
+      key: "status",
+
+      render: (_, record) => {
+
+        const attendance =
+          getAttendance(record);
+
+
+        if (!attendance) {
+
+          return (
+            <Tag>
+              No Entry
+            </Tag>
+          );
+
+        }
+
+
+        if (
+          attendance.status ===
+          "Present"
+        ) {
+
+          return (
+
+            <Tag
+              color="success"
+              icon={
+                <CheckOutlined />
+              }
+            >
+              Present
+            </Tag>
+
+          );
+
+        }
+
+
+        return (
+
+          <Tag
+            color="error"
+            icon={
+              <CloseOutlined />
+            }
+          >
+            Absent
+          </Tag>
+
+        );
+
+      },
+
+    },
+
   ];
-  return (
-    <div className="w-full">
-      {/* Header */}
+
+
+  // =========================
+  // LOADING
+  // =========================
+  if (isLoading) {
+
+    return (
 
       <div
         className="
-flex justify-between
-items-center
-mb-6"
+          flex
+          justify-center
+          py-20
+        "
       >
+        <Spin size="large" />
+      </div>
+
+    );
+
+  }
+
+
+  return (
+
+    <div className="w-full">
+
+      {/* =========================
+          HEADER
+      ========================= */}
+
+      <div
+        className="
+          flex
+          flex-col
+          md:flex-row
+          justify-between
+          md:items-center
+          gap-4
+          mb-6
+        "
+      >
+
         <div>
+
           <h1
             className="
-text-3xl
-font-bold
-text-gray-900"
+              text-3xl
+              font-bold
+              text-gray-900
+            "
           >
             Attendance
           </h1>
 
           <p
             className="
-text-gray-500"
+              text-gray-500
+              mt-1
+            "
           >
-            Track daily attendance and notify absent students
+            Mark attendance and notify selected guardians
           </p>
+
         </div>
+
+
+        {/* DATE */}
 
         <DatePicker
           size="large"
-          suffixIcon={<CalendarOutlined />}
-          className="
-rounded-xl"
+          value={selectedDate}
+          onChange={(date) => {
+
+            if (!date) {
+              return;
+            }
+
+            setSelectedDate(date);
+
+            // Date change হলে
+            // selection clear
+            setSelectedStudents([]);
+
+          }}
+          format="DD MMM YYYY"
+          suffixIcon={
+            <CalendarOutlined />
+          }
+          className="!rounded-xl"
         />
+
       </div>
 
-      {/* Toolbar */}
+
+      {/* =========================
+          SEARCH + FILTER
+      ========================= */}
 
       <div
         className="
-  rounded-[28px]
-            border border-border
-            bg-surface-soft/80
-            backdrop-blur-2xl
-            p-6
-            shadow-[0_20px_60px_rgba(91,33,182,0.10)]
-"
+          rounded-[28px]
+          border
+          border-border
+          bg-surface-soft/80
+          backdrop-blur-2xl
+          p-5
+          shadow-[0_20px_60px_rgba(91,33,182,0.10)]
+        "
       >
+
         <div
           className="
-flex gap-3
-items-center "
+            flex
+            flex-col
+            md:flex-row
+            gap-3
+          "
         >
+
           <Input
             size="large"
-            prefix={<SearchOutlined />}
-            placeholder="
-Search by name, ID or phone..."
+            prefix={
+              <SearchOutlined />
+            }
+            placeholder="Search student..."
+            value={searchText}
+            onChange={(e) =>
+              setSearchText(
+                e.target.value
+              )
+            }
             className="
-!rounded-xl
-max-w-md"
+              !rounded-xl
+              max-w-md
+            "
           />
+
 
           <Select
             size="large"
-            placeholder="
-All Classes"
-            className="
-w-44"
+            value={selectedClass}
+            onChange={
+              setSelectedClass
+            }
+            options={classOptions}
+            className="w-44"
           />
+
 
           <Button
-            onClick={handleSelectAllAbsent}
+            size="large"
+            onClick={
+              handleSelectAllAbsent
+            }
             className="
-    group
-    relative
-    overflow-hidden
-    
-    !h-11
-    !rounded-xl
-    
-    !border
-    !border-purple-300
-    
-    !bg-purple-50
-    
-    !px-5
-    
-    !font-urbanist
-    !font-semibold
-    
-    !text-purple-700
-    
-    transition-all
-    duration-300
-    
-    hover:!scale-105
-    
-    hover:!border-purple-500
-    
-    hover:!bg-purple-100
-    
-    hover:!shadow-lg
-    
-    hover:!shadow-purple-200
-    
-    active:!scale-95
-  "
+              !rounded-xl
+              !border-purple-300
+              !bg-purple-50
+              !text-purple-700
+              !font-semibold
+            "
           >
-            <span
-              className="
-relative
-z-10
-flex
-items-center
-gap-2
-"
-            >
-              ✓ Select All
-            </span>
+            ✓ Select All Absent
           </Button>
+
+
+          <Button
+            size="large"
+            onClick={
+              handleClearSelection
+            }
+            disabled={
+              selectedStudents.length === 0
+            }
+            className="
+              !rounded-xl
+            "
+          >
+            Clear Selection
+          </Button>
+
         </div>
+
       </div>
 
-      {/* Selected Count */}
+
+      {/* =========================
+          CONTENT
+      ========================= */}
 
       <div
-        className=" mt-5
-          rounded-[28px]
-            border border-border
-            bg-surface-soft/80
-            backdrop-blur-2xl
-            p-6
-            shadow-[0_20px_60px_rgba(91,33,182,0.10)]
-grid
-grid-cols-1
-xl:grid-cols-4
-gap-5"
+        className="
+          mt-5
+          grid
+          grid-cols-1
+          xl:grid-cols-4
+          gap-5
+        "
       >
-        {/* Table */}
 
-        <div
-          className=" p-4
-xl:col-span-3
-
-
- rounded-2xl border border-border bg-surface-soft shadow-[0_10px_40px_rgba(91,33,182,0.06)] backdrop-blur-xl
-overflow-hidden
-
-
-
-"
-        >
-          <Table
-            columns={columns}
-            dataSource={students}
-            rowSelection={rowSelection}
-            pagination={{
-              pageSize: 8,
-            }}
-            rowKey="key"
-          />
-        </div>
-
-        {/* Message Panel */}
+        {/* =========================
+            TABLE
+        ========================= */}
 
         <div
           className="
-bg-white
-rounded-2xl
- rounded-2xl border border-border bg-surface-soft shadow-[0_10px_40px_rgba(91,33,182,0.06)] backdrop-blur-xl
-p-5"
+            xl:col-span-3
+            rounded-[28px]
+            border
+            border-border
+            bg-surface-soft/80
+            backdrop-blur-2xl
+            p-5
+            shadow-[0_20px_60px_rgba(91,33,182,0.10)]
+            overflow-hidden
+          "
         >
-          <h2
-            className="
-text-xl
-font-bold
-mb-2"
-          >
-            ✉ Bulk SMS Preview
-          </h2>
+
+          <Table
+            columns={columns}
+            dataSource={
+              filteredStudents
+            }
+            rowKey="_id"
+            rowSelection={
+              rowSelection
+            }
+            loading={isFetching}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+            }}
+            scroll={{
+              x: 1100,
+            }}
+          />
+
+        </div>
+
+
+        {/* =========================
+            MESSAGE PANEL
+        ========================= */}
+
+        <div
+          className="
+            rounded-[28px]
+            border
+            border-border
+            bg-surface-soft/80
+            backdrop-blur-2xl
+            p-5
+            shadow-[0_20px_60px_rgba(91,33,182,0.10)]
+          "
+        >
 
           <div
             className="
-    flex
-    items-center
-    gap-3
-    
-    rounded-[18px]
-    
-    border
-    border-purple-200/60
-    
-    bg-gradient-to-r
-    from-purple-50
-    to-purple-100/60
-    
-    backdrop-blur-2xl
-    
-    px-5
-    py-2
-    
-    text-purple-700
-    
-    shadow-[0_20px_60px_rgba(91,33,182,0.10)]
-    
-    transition-all
-    duration-300
-    
-    hover:shadow-[0_25px_70px_rgba(91,33,182,0.15)]
-  "
+              flex
+              items-center
+              gap-3
+              mb-5
+            "
           >
+
             <div
               className="
-    flex
-    
-  "
+                w-10
+                h-10
+                rounded-xl
+                flex
+                items-center
+                justify-center
+                bg-purple-100
+                text-purple-700
+              "
             >
-              <GrGroup size={24} className="shrink-0 block" />
+              <FiSend size={19} />
             </div>
 
+
             <div>
+
+              <h2
+                className="
+                  text-xl
+                  font-bold
+                  text-gray-900
+                "
+              >
+                Send Message
+              </h2>
+
               <p
                 className="
-        font-urbanist
-        text-sm
-        font-bold
-        text-purple-800
-      "
+                  text-xs
+                  text-gray-500
+                "
+              >
+                Selected guardians
+              </p>
+
+            </div>
+
+          </div>
+
+
+          {/* =========================
+              SELECTED COUNT
+          ========================= */}
+
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+              rounded-2xl
+              border
+              border-purple-200
+              bg-purple-50
+              p-4
+            "
+          >
+
+            <GrGroup
+              size={24}
+              className="text-purple-600"
+            />
+
+            <div>
+
+              <p
+                className="
+                  text-sm
+                  font-bold
+                  text-purple-800
+                "
               >
                 {selectedStudents.length} Students Selected
               </p>
 
               <p
                 className="
-        mt-1
-        text-xs
-        font-medium
-        text-purple-500
-      "
+                  text-xs
+                  text-purple-500
+                  mt-1
+                "
               >
-                Ready to send message to selected guardians
+                Only selected students will receive the message
               </p>
+
             </div>
+
           </div>
 
-          <label
-            className="
-font-semibold"
-          >
-            Message
-          </label>
 
-          <textarea
-            className="
+          {/* =========================
+              SELECTED STUDENT LIST
+          ========================= */}
 
-w-full
+          {selectedStudents.length >
+            0 && (
 
-mt-2
-
-h-32
-
-rounded-xl
-
-border
-
-p-3
-
-resize-none"
-            defaultValue={`
-Your child was absent today.
-Please contact the school if needed.
-`}
-          />
-
-          <button
-            onClick={() => {
-              navigate(`/students-profile/${record._id}`);
-            }}
-            className="
-    group
-    cursor-pointer
-    
-    flex
-    items-center
-    justify-center
-    gap-2
-    
-    rounded-xl
-    
-    border
-    border-white/20
-    
-    bg-gradient-to-r
-    from-brand-primary/80
-    to-brand-secondary/80
-    
-    px-5
-    py-2
-    
-    font-urbanist
-    font-semibold
-    text-white
-    
-    shadow-lg
-    text-[14px]
-    
-    shadow-brand-primary/30
-    
-    backdrop-blur-md
-    
-    transition-all
-    duration-300
-    
-    hover:scale-105
-    
-    hover:shadow-xl
-    hover:shadow-brand-secondary/40
-    
-    hover:brightness-110
-    
-    active:scale-95
-     mt-3
-  "
-            title="Send Message"
-          >
-            <FiSend
-              size={16}
+            <div
               className="
-      transition-transform
-      duration-300
-      group-hover:translate-x-1
-      group-hover:-translate-y-1
-    "
+                mt-4
+                max-h-40
+                overflow-y-auto
+                space-y-2
+              "
+            >
+
+              {selectedStudents.map(
+                (student) => (
+
+                  <div
+                    key={student._id}
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                      rounded-xl
+                      bg-white/60
+                      border
+                      border-gray-200
+                      px-3
+                      py-2
+                    "
+                  >
+
+                    <div>
+
+                      <p
+                        className="
+                          text-sm
+                          font-semibold
+                        "
+                      >
+                        {student.name}
+                      </p>
+
+                      <p
+                        className="
+                          text-xs
+                          text-gray-500
+                        "
+                      >
+                        {student.phone}
+                      </p>
+
+                    </div>
+
+
+                    <Tag
+                      color="error"
+                    >
+                      Absent
+                    </Tag>
+
+                  </div>
+
+                )
+              )}
+
+            </div>
+
+          )}
+
+
+          {/* =========================
+              MESSAGE
+          ========================= */}
+
+          <div className="mt-5">
+
+            <label
+              className="
+                block
+                text-sm
+                font-semibold
+                mb-2
+              "
+            >
+              Message
+            </label>
+
+
+            <textarea
+              value={smsMessage}
+              onChange={(e) =>
+                setSmsMessage(
+                  e.target.value
+                )
+              }
+              maxLength={200}
+              placeholder="Write your message..."
+              className="
+                w-full
+                h-32
+                rounded-xl
+                border
+                border-gray-300
+                bg-white/70
+                p-3
+                text-sm
+                outline-none
+                resize-none
+                focus:border-purple-500
+                focus:ring-2
+                focus:ring-purple-100
+              "
             />
+
+
+            <div
+              className="
+                text-right
+                text-xs
+                text-gray-400
+                mt-1
+              "
+            >
+              {smsMessage.length}/200
+            </div>
+
+          </div>
+
+
+          {/* =========================
+              SEND BUTTON
+          ========================= */}
+
+          <Button
+            type="primary"
+            block
+            size="large"
+            icon={
+              <FiSend />
+            }
+            disabled={
+              selectedStudents.length === 0 ||
+              !smsMessage.trim()
+            }
+            onClick={
+              handleSendMessage
+            }
+            className="
+              !mt-3
+              !h-11
+              !rounded-xl
+              !bg-purple-600
+              !border-purple-600
+              !font-semibold
+            "
+          >
             Send Message
-          </button>
+          </Button>
+
+
+          {/* =========================
+              INFO
+          ========================= */}
+
           <div
             className="
-
-mt-5
-
-bg-purple-50
-
-rounded-xl
-
-p-4
-
-text-sm
-
-text-gray-600"
+              mt-4
+              rounded-xl
+              bg-purple-50
+              p-3
+              text-xs
+              text-gray-600
+            "
           >
-            ⓘ This message will be sent to the guardians of all selected
-            students.
+            ⓘ Attendance is saved directly
+            to each student's profile.
           </div>
+
         </div>
+
       </div>
+
     </div>
+
   );
 };
+
 
 export default Attendance;

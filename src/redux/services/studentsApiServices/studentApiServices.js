@@ -49,7 +49,23 @@ getStudents: build.query({
       invalidatesTags: ["Student"],
     }),
 
-
+// ADD FEE PAYMENT
+addFeePayment: build.mutation({
+  query: ({ id, paymentData }) => ({
+    url: `/students/${id}/fee-payment`,
+    method: "POST",
+    body: paymentData,
+  }),
+  invalidatesTags: ["Student"],
+}),
+  markAttendance: build.mutation({
+      query: ({ id, attendanceData }) => ({
+        url: `/students/${id}/attendance`,
+        method: "PATCH",
+        body: attendanceData,
+      }),
+      invalidatesTags: ["Student"],
+    }),
     // DELETE STUDENT
     deleteStudent: build.mutation({
       query: (id) => ({
@@ -69,4 +85,6 @@ export const {
   useGetStudentByIdQuery,
   useUpdateStudentMutation,
   useDeleteStudentMutation,
+  useAddFeePaymentMutation,
+  useMarkAttendanceMutation,
 } = studentApiService;

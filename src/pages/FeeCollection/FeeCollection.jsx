@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { Table, Button, Input, Select, Tag, Modal, DatePicker } from "antd";
+import {
+  Table,
+  Button,
+  Input,
+  Select,
+  Tag,
+  Modal,
+  DatePicker,
+  Skeleton,
+  Form,
+  message,
+} from "antd";
 import {
   SearchOutlined,
   WalletOutlined,
@@ -11,100 +22,51 @@ import {
   HiOutlineWallet,
   HiOutlineUsers,
   HiOutlineClock,
-  HiOutlineCheckCircle
+  HiOutlineCheckCircle,
 } from "react-icons/hi2";
 import FeeSummaryCards from "../../components/students/FeeSummaryCards";
+import { useGetStudentsQuery,useAddFeePaymentMutation,} from "../../redux/services/studentsApiServices/studentApiServices";
 const FeeCollection = () => {
   const [open, setOpen] = useState(false);
 
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const students = [
-    {
-      key: "1",
-      name: "Sakib Ahmed",
-      studentId: "429535",
-      className: "One",
-      batch: "A",
-      monthlyFee: "1,313",
-      status: "Paid",
-    },
-
-    {
-      key: "2",
-      name: "Sharif Hossain",
-      studentId: "212580",
-      className: "Two",
-      batch: "A",
-      monthlyFee: "1,500",
-      status: "Due",
-    },
-
-    {
-      key: "3",
-      name: "Afnaf Rahman",
-      studentId: "759546",
-      className: "Two",
-      batch: "A",
-      monthlyFee: "1,500",
-      status: "Due",
-    },
-
-    {
-      key: "4",
-      name: "Dihan Islam",
-      studentId: "697130",
-      className: "Three",
-      batch: "B",
-      monthlyFee: "1,800",
-      status: "Paid",
-    },
-
-    {
-      key: "5",
-      name: "Mehedi Hasan",
-      studentId: "886034",
-      className: "One",
-      batch: "A",
-      monthlyFee: "1,500",
-      status: "Due",
-    },
-
-    {
-      key: "6",
-      name: "Rafiul Islam",
-      studentId: "980903",
-      className: "Four",
-      batch: "B",
-      monthlyFee: "2,000",
-      status: "Due",
-    },
-
-    {
-      key: "7",
-      name: "Nusrat Jahan",
-      studentId: "855079",
-      className: "Three",
-      batch: "A",
-      monthlyFee: "1,500",
-      status: "Paid",
-    },
-
-    {
-      key: "8",
-      name: "Tasmia Akter",
-      studentId: "782200",
-      className: "Two",
-      batch: "A",
-      monthlyFee: "1,500",
-      status: "Due",
-    },
-  ];
+  const { data: studentData, isLoading } = useGetStudentsQuery();
+  const [addFeePayment, { isLoading: isPaymentLoading }] =
+  useAddFeePaymentMutation();
+  const students = studentData?.data;
   const handlePay = (student) => {
     setSelectedStudent(student);
 
     setOpen(true);
   };
+  const [form] = Form.useForm();
+const handleConfirmPayment = async () => {
+  try {
+    const values = await form.validateFields();
 
+    const paymentData = {
+      amount: Number(values.amount),
+      month: values.month,
+    };
+
+    await addFeePayment({
+      id: selectedStudent?._id,
+      paymentData,
+    }).unwrap();
+
+    message.success("Payment completed successfully!");
+
+    form.resetFields();
+    setOpen(false);
+  } catch (error) {
+    console.log("Payment Failed:", error);
+
+    message.error(
+      error?.data?.message || "Payment failed. Please try again."
+    );
+  }
+};
+ 
   const columns = [
     {
       title: "#",
@@ -334,8 +296,8 @@ text-text-muted"
           </p>
         </div>
       </div>
-     
-<FeeSummaryCards/>
+
+      <FeeSummaryCards total={studentData?.count} />
 
       <div
         className="
@@ -410,32 +372,45 @@ ml-auto
 
       {/* Table */}
 
-      <div
-        className="
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface-soft shadow-[0_10px_40px_rgba(91,33,182,0.06)] backdrop-blur-xl">
+        {isLoading ? (
+          <div className="space-y-4 p-5">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <div
+                key={item}
+                className="flex items-center gap-4 rounded-xl border border-border bg-white/50 p-4"
+              >
+                <Skeleton.Avatar active size={40} />
 
-rounded-[28px]
-
-border
-
-border-border
-
-bg-white
-
-overflow-hidden
-
-shadow-[0_20px_60px_rgba(91,33,182,0.10)]
-
-"
-      >
-        <Table
-          columns={columns}
-          dataSource={students}
-          pagination={{
-            pageSize: 8,
-          }}
-        />
+                <div className="flex-1">
+                  <Skeleton
+                    active
+                    paragraph={{
+                      rows: 1,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="w-full overflow-hidden rounded-xl">
+            <Table
+              columns={columns}
+              dataSource={studentData?.data || []}
+              rowKey="_id"
+              scroll={{
+                x: "max-content",
+              }}
+              pagination={{
+                pageSize: 8,
+                showSizeChanger: false,
+                showTotal: (total) => `Total ${total} students`,
+              }}
+            />
+          </div>
+        )}
       </div>
-
       {/* Payment Modal */}
 
       <Modal
@@ -471,190 +446,167 @@ text-gray-500"
           </div>
 
           {/* Student Card */}
+          <Form form={form} layout="vertical" className="mt-6">
+            {/* Student Information */}
 
-          <div
-            className="
-rounded-2xl
-
-bg-purple-50
-
-p-4
-
-mb-5"
-          >
-            <div
-              className="
-flex
-items-center
-gap-3"
-            >
-              <div
-                className="
-h-12
-w-12
-
-rounded-full
-
-bg-gradient-to-br
-
-from-brand-primary
-
-to-brand-secondary
-
-
-flex
-
-items-center
-
-justify-center
-
-text-white
-
-font-bold"
-              >
-                {selectedStudent?.name?.charAt(0)}
-              </div>
-
-              <div>
-                <h3
+            <div className="mb-5 rounded-2xl bg-purple-50 p-4">
+              <div className="flex items-center gap-3">
+                <div
                   className="
-font-bold"
+          flex h-12 w-12
+          items-center justify-center
+          rounded-full
+          bg-gradient-to-br
+          from-brand-primary
+          to-brand-secondary
+          font-bold
+          text-white
+        "
                 >
-                  {selectedStudent?.name}
-                </h3>
+                  {selectedStudent?.name?.charAt(0)}
+                </div>
 
-                <p
-                  className="
-text-sm
-text-gray-500"
-                >
-                  ID: {selectedStudent?.studentId}
-                  &nbsp; | &nbsp; Class: {selectedStudent?.className}
-                  &nbsp; | &nbsp; Batch: {selectedStudent?.batch}
-                </p>
+                <div>
+                  <h3 className="font-bold">{selectedStudent?.name}</h3>
+
+                  <p className="text-sm text-gray-500">
+                    ID: {selectedStudent?.studentId}
+                    &nbsp; | &nbsp; Class: {selectedStudent?.className}
+                    &nbsp; | &nbsp; Batch: {selectedStudent?.batch}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <label
-            className="
-font-semibold"
-          >
-            Amount *
-          </label>
+            {/* Amount */}
 
-          <Input
-            size="large"
-            prefix="৳"
-            defaultValue={selectedStudent?.monthlyFee}
-            className="
-my-2
-!rounded-xl"
-          />
-
-          <label
-            className="
-font-semibold"
-          >
-            Payment Date *
-          </label>
-
-          <DatePicker
-            size="large"
-            className="
-w-full
-my-2
-!rounded-xl"
-            suffixIcon={<CalendarOutlined />}
-          />
-
-          <label
-            className="
-font-semibold"
-          >
-            Select Month *
-          </label>
-
-          <Select
-            size="large"
-            className="
-w-full
-my-2
-!rounded-xl"
-            placeholder="Choose month"
-            options={[
-              "January",
-              "February",
-              "March",
-              "April",
-              "May",
-              "June",
-              "July",
-              "August",
-              "September",
-              "October",
-              "November",
-              "December",
-            ].map((month) => ({
-              label: month,
-
-              value: month,
-            }))}
-          />
-
-          <label
-            className="
-font-semibold"
-          >
-            Note (Optional)
-          </label>
-
-          <Input.TextArea
-            rows={3}
-            className="
-mt-2
-!rounded-xl"
-            placeholder="
-Add note..."
-          />
-
-          <div
-            className="
-flex
-gap-3
-mt-6"
-          >
-            <Button
-              block
-              onClick={() => setOpen(false)}
-              className="
-!rounded-xl
-!h-12"
+            <Form.Item
+              label="Amount"
+              name="amount"
+              initialValue={selectedStudent?.monthlyFee}
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter payment amount",
+                },
+              ]}
             >
-              Cancel
-            </Button>
+              <Input
+                size="large"
+                type="number"
+                prefix="৳"
+                placeholder="Enter payment amount"
+                className="!rounded-xl"
+              />
+            </Form.Item>
 
-            <Button
-              block
-              className="
-!rounded-xl
-!h-12
+            {/* Month */}
 
-!bg-gradient-to-r
-
-!from-brand-primary
-
-!to-brand-secondary
-
-!text-white
-
-!border-0
-
-font-semibold"
+            <Form.Item
+              label="Select Month"
+              name="month"
+              rules={[
+                {
+                  required: true,
+                  message: "Please select month",
+                },
+              ]}
             >
-              Confirm Payment
-            </Button>
-          </div>
+              <Select
+                size="large"
+                placeholder="Choose month"
+                className="w-full"
+                options={[
+                  {
+                    value: "January",
+                    label: "January",
+                  },
+                  {
+                    value: "February",
+                    label: "February",
+                  },
+                  {
+                    value: "March",
+                    label: "March",
+                  },
+                  {
+                    value: "April",
+                    label: "April",
+                  },
+                  {
+                    value: "May",
+                    label: "May",
+                  },
+                  {
+                    value: "June",
+                    label: "June",
+                  },
+                  {
+                    value: "July",
+                    label: "July",
+                  },
+                  {
+                    value: "August",
+                    label: "August",
+                  },
+                  {
+                    value: "September",
+                    label: "September",
+                  },
+                  {
+                    value: "October",
+                    label: "October",
+                  },
+                  {
+                    value: "November",
+                    label: "November",
+                  },
+                  {
+                    value: "December",
+                    label: "December",
+                  },
+                ]}
+              />
+            </Form.Item>
+
+       
+
+
+            {/* Buttons */}
+
+            <div className="mt-6 flex gap-3">
+             <Button
+  block
+  disabled={isPaymentLoading}
+  onClick={() => {
+    form.resetFields();
+    setOpen(false);
+  }}
+  className="!h-12 !rounded-xl"
+>
+  Cancel
+</Button>
+
+<Button
+  block
+  loading={isPaymentLoading}
+  disabled={isPaymentLoading}
+  onClick={handleConfirmPayment}
+  className="
+    !h-12
+    !rounded-xl
+    !border-0
+    !bg-gradient-to-r
+    !from-brand-primary
+    !to-brand-secondary
+    font-semibold
+    !text-white
+  "
+>
+  Confirm Payment
+</Button>
+            </div>
+          </Form>
         </div>
       </Modal>
     </div>
