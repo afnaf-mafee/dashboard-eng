@@ -5,6 +5,7 @@ import Students from "../pages/Students/Students";
 import StudentProfile from "../pages/Students/StudentProfile";
 import Attendance from "../pages/Attendance/Attendance";
 import FeeCollection from "../pages/FeeCollection/FeeCollection";
+import ResultManagement from "../pages/ResultManagement/ResultManagement";
 
 
 export const router = createBrowserRouter([
@@ -25,6 +26,9 @@ export const router = createBrowserRouter([
       }, {
         path: "/fee-collection",
         element: <FeeCollection/>,
+      }, {
+        path: "/result",
+        element: <ResultManagement/>,
       },
     ],
   },

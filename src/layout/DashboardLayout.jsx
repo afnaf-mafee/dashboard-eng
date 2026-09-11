@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   X,
+  ChartNoAxesCombined 
 } from "lucide-react";
 
 const DashboardLayout = () => {
@@ -28,6 +29,10 @@ const DashboardLayout = () => {
       name: "Fee Collection",
       path: "/fee-collection",
       icon: WalletCards,
+    },{
+      name: "Result",
+      path: "/result",
+      icon: ChartNoAxesCombined 
     },
   ];
 
@@ -200,7 +205,7 @@ const DashboardLayout = () => {
           </div>
 
           {/* Page */}
-          <div className="min-h-[calc(100vh-48px)] rounded-[28px] border border-border bg-surface-soft p-4 shadow-[0_20px_60px_rgba(91,33,182,0.08)] backdrop-blur-2xl sm:p-6 lg:p-8">
+          <div className=" !font-urbanest min-h-[calc(100vh-48px)] rounded-[28px] border border-border bg-surface-soft p-4 shadow-[0_20px_60px_rgba(91,33,182,0.08)] backdrop-blur-2xl sm:p-6 lg:p-8">
 
             <Outlet />
 
