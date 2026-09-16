@@ -19,6 +19,7 @@ import {
   MoreOutlined,
   PlusOutlined,
   SearchOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { FiCopy } from "react-icons/fi";
 import {
@@ -413,55 +414,50 @@ const Students = () => {
       ========================================== */}
 
       <div className="mb-5 rounded-2xl border border-border bg-surface-soft p-4 backdrop-blur-xl">
-        <div className="flex flex-col gap-3 lg:flex-row">
-          <Input
-            size="large"
-            allowClear
-            prefix={<SearchOutlined className="text-text-muted" />}
-            placeholder="Search by name, ID or phone..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="!h-11 !rounded-xl lg:max-w-md"
-          />
+  <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+    <Input
+      size="large"
+      allowClear
+      prefix={<SearchOutlined className="text-text-muted" />}
+      placeholder="Search by name, ID or phone..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="!h-11 !rounded-xl lg:max-w-md"
+    />
 
-          <Select
-            size="large"
-            value={selectedClass}
-            onChange={setSelectedClass}
-            className="w-full lg:w-44"
-            options={[
-              {
-                value: "all",
-                label: "All Classes",
-              },
-              {
-                value: "One",
-                label: "One",
-              },
-              {
-                value: "Two",
-                label: "Two",
-              },
-              {
-                value: "Three",
-                label: "Three",
-              },
-              {
-                value: "Four",
-                label: "Four",
-              },
-              {
-                value: "Five",
-                label: "Five",
-              },
-              {
-                value: "Six",
-                label: "Six",
-              },
-            ]}
-          />
-        </div>
+    <Select
+      size="large"
+      value={selectedClass}
+      onChange={setSelectedClass}
+      className="w-full lg:w-44"
+      options={[
+        { value: "all", label: "All Classes" },
+        { value: "One", label: "One" },
+        { value: "Two", label: "Two" },
+        { value: "Three", label: "Three" },
+        { value: "Four", label: "Four" },
+        { value: "Five", label: "Five" },
+        { value: "Six", label: "Six" },
+      ]}
+    />
+
+    {/* Total Students */}
+    <div className="flex h-11 items-center gap-3 rounded-xl border border-border bg-surface px-4 lg:ml-auto">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+        <TeamOutlined className="text-primary" />
       </div>
+
+      <div className="flex items-center gap-2 whitespace-nowrap">
+        <span className="text-xl font-bold text-text">
+          22
+        </span>
+        <span className="text-sm font-medium text-text-muted">
+          Total Students
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* ==========================================
           Student Table
@@ -694,18 +690,18 @@ const Students = () => {
           {/* Guardian */}
 
           <Form.Item
-            label="Guardian Name"
-            name="guardian"
+            label="School Name"
+            name="school"
             rules={[
               {
                 required: true,
-                message: "Please enter guardian name",
+                message: "Please enter school name",
               },
             ]}
           >
             <Input
               size="large"
-              placeholder="Enter guardian name"
+              placeholder="Enter school name"
               className="!rounded-xl"
             />
           </Form.Item>

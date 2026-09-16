@@ -6,6 +6,7 @@ import StudentProfile from "../pages/Students/StudentProfile";
 import Attendance from "../pages/Attendance/Attendance";
 import FeeCollection from "../pages/FeeCollection/FeeCollection";
 import ResultManagement from "../pages/ResultManagement/ResultManagement";
+import Batch from "../pages/Batch/Batch";
 
 
 export const router = createBrowserRouter([
@@ -29,6 +30,9 @@ export const router = createBrowserRouter([
       }, {
         path: "/result",
         element: <ResultManagement/>,
+      },{
+        path: "/batch",
+        element: <Batch/>,
       },
     ],
   },

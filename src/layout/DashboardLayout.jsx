@@ -8,7 +8,8 @@ import {
   LogOut,
   Menu,
   X,
-  ChartNoAxesCombined 
+  ChartNoAxesCombined,
+  Blocks
 } from "lucide-react";
 
 const DashboardLayout = () => {
@@ -33,6 +34,10 @@ const DashboardLayout = () => {
       name: "Result",
       path: "/result",
       icon: ChartNoAxesCombined 
+    },{
+      name: "Batch",
+      path: "/batch",
+      icon: Blocks 
     },
   ];
 
