@@ -29,10 +29,11 @@ import {
   useUpdateStudentMutation,
 } from "../../redux/services/studentsApiServices/studentApiServices";
 import { useNavigate } from "react-router-dom";
+import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices";
 
 const Students = () => {
   const [form] = Form.useForm();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [openModal, setOpenModal] = useState(false);
 
@@ -64,7 +65,7 @@ const Students = () => {
   const [deleteStudentApi, { isLoading: isDeleting }] =
     useDeleteStudentMutation();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
-
+  const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
   // ==========================================
   // Add Student
   // ==========================================
@@ -323,16 +324,16 @@ const Students = () => {
       ),
     },
 
-   {
-  title: "Profile",
-  key: "profile",
+    {
+      title: "Profile",
+      key: "profile",
 
-  render: (_, record) => (
-    <button
-      onClick={() => {
-        navigate(`/students-profile/${record._id}`);
-      }}
-      className="
+      render: (_, record) => (
+        <button
+          onClick={() => {
+            navigate(`/students-profile/${record._id}`);
+          }}
+          className="
         cursor-pointer 
         rounded-xl 
         border 
@@ -357,12 +358,12 @@ const Students = () => {
         hover:brightness-110 
         active:scale-95
       "
-      title="View Profile"
-    >
-      Profile
-    </button>
-  ),
-},
+          title="View Profile"
+        >
+          Profile
+        </button>
+      ),
+    },
     {
       title: "",
       key: "action",
@@ -414,50 +415,84 @@ const Students = () => {
       ========================================== */}
 
       <div className="mb-5 rounded-2xl border border-border bg-surface-soft p-4 backdrop-blur-xl">
-  <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-    <Input
-      size="large"
-      allowClear
-      prefix={<SearchOutlined className="text-text-muted" />}
-      placeholder="Search by name, ID or phone..."
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      className="!h-11 !rounded-xl lg:max-w-md"
-    />
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <Input
+            size="large"
+            allowClear
+            prefix={<SearchOutlined className="text-text-muted" />}
+            placeholder="Search by name, ID or phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="!h-11 !rounded-xl lg:max-w-md"
+          />
 
-    <Select
-      size="large"
-      value={selectedClass}
-      onChange={setSelectedClass}
-      className="w-full lg:w-44"
-      options={[
-        { value: "all", label: "All Classes" },
-        { value: "One", label: "One" },
-        { value: "Two", label: "Two" },
-        { value: "Three", label: "Three" },
-        { value: "Four", label: "Four" },
-        { value: "Five", label: "Five" },
-        { value: "Six", label: "Six" },
-      ]}
-    />
+          <Select
+            size="large"
+            value={selectedClass}
+            onChange={setSelectedClass}
+            className="w-full lg:w-44"
+            options={[
+              { value: "all", label: "All Classes" },
+              { value: "One", label: "One" },
+              { value: "Two", label: "Two" },
+              { value: "Three", label: "Three" },
+              { value: "Four", label: "Four" },
+              { value: "Five", label: "Five" },
+              { value: "Six", label: "Six" },
+            ]}
+          />
+          <Select
+            size="large"
+            placeholder="Select Batch"
+            loading={batchLoading}
+            options={
+              batchData?.data?.map((batch) => ({
+                value: "d",
+                label: batch.days,
+              })) || []
+            }
+          />
+          <Select
+            size="large"
+            placeholder="Select time"
+            options={[
+              {
+                value: "A1",
+                label: "A1",
+              },
+              {
+                value: "A2",
+                label: "A2",
+              },
+              {
+                value: "A3",
+                label: "A3",
+              },
+              {
+                value: "A4",
+                label: "A4",
+              },
+              {
+                value: "A5",
+                label: "A5",
+              },
+            ]}
+          />
+          {/* Total Students */}
+          <div className="flex h-11 items-center gap-3 rounded-xl border border-border bg-surface px-4 lg:ml-auto">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+              <TeamOutlined className="text-primary" />
+            </div>
 
-    {/* Total Students */}
-    <div className="flex h-11 items-center gap-3 rounded-xl border border-border bg-surface px-4 lg:ml-auto">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-        <TeamOutlined className="text-primary" />
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <span className="text-xl font-bold text-text">22</span>
+              <span className="text-sm font-medium text-text-muted">
+                Total Students
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div className="flex items-center gap-2 whitespace-nowrap">
-        <span className="text-xl font-bold text-text">
-          22
-        </span>
-        <span className="text-sm font-medium text-text-muted">
-          Total Students
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
 
       {/* ==========================================
           Student Table
@@ -554,26 +589,23 @@ const Students = () => {
         <Form form={form} layout="vertical" className="mt-6">
           {/* Name */}
 
-          <Form.Item
-            label="Student Name"
-            name="name"
-            rules={[
-              {
-                required: true,
-                message: "Please enter student name",
-              },
-            ]}
-          >
-            <Input
-              size="large"
-              placeholder="Enter student name"
-              className="!rounded-xl"
-            />
-          </Form.Item>
-
-          {/* Roll + Class */}
-
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Form.Item
+              label="Student Name"
+              name="name"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter student name",
+                },
+              ]}
+            >
+              <Input
+                size="large"
+                placeholder="Enter student name"
+                className="!rounded-xl"
+              />
+            </Form.Item>
             <Form.Item
               label="Class"
               name="className"
@@ -616,7 +648,11 @@ const Students = () => {
                 ]}
               />
             </Form.Item>
+          </div>
 
+          {/* Batch */}
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Form.Item
               label="Batch"
               name="section"
@@ -630,18 +666,40 @@ const Students = () => {
               <Select
                 size="large"
                 placeholder="Select section"
+                loading={batchLoading}
+                options={
+                  batchData?.data?.map((batch) => ({
+                    value: "d",
+                    label: batch.days,
+                  })) || []
+                }
+              />
+            </Form.Item>
+            <Form.Item
+              label="Time"
+              name="time"
+              rules={[
+                {
+                  required: true,
+                  message: "Please select time",
+                },
+              ]}
+            >
+              <Select
+                size="large"
+                placeholder="Select time"
                 options={[
                   {
-                    value: "A",
-                    label: "Section A",
+                    value: "Morning",
+                    label: "Morning",
                   },
                   {
-                    value: "B",
-                    label: "Section B",
+                    value: "Afternoon",
+                    label: "Afternoon",
                   },
                   {
-                    value: "C",
-                    label: "Section C",
+                    value: "Evening",
+                    label: "Evening",
                   },
                 ]}
               />

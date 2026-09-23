@@ -9,7 +9,7 @@ import {
   Menu,
   X,
   ChartNoAxesCombined,
-  Blocks
+  Blocks,
 } from "lucide-react";
 
 const DashboardLayout = () => {
@@ -30,38 +30,36 @@ const DashboardLayout = () => {
       name: "Fee Collection",
       path: "/fee-collection",
       icon: WalletCards,
-    },{
+    },
+    {
       name: "Result",
       path: "/result",
-      icon: ChartNoAxesCombined 
-    },{
+      icon: ChartNoAxesCombined,
+    },
+    {
       name: "Batch",
       path: "/batch",
-      icon: Blocks 
+      icon: Blocks,
     },
   ];
 
   return (
     <div className="min-h-screen bg-app-bg font-inter text-text-primary">
-
       {/* =========================
           Background Glow
       ========================= */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
-
         <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-glow-purple/20 blur-3xl" />
 
         <div className="absolute -right-20 top-40 h-80 w-80 rounded-full bg-glow-fuchsia/20 blur-3xl" />
 
         <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-glow-violet/15 blur-3xl" />
-
       </div>
 
       {/* =========================
           Mobile Header
       ========================= */}
       <header className="fixed left-0 right-0 top-0 z-40 flex h-[72px] items-center justify-between border-b border-border bg-surface-soft px-5 backdrop-blur-xl lg:hidden">
-
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary shadow-lg shadow-brand-primary/25">
           <span className="text-sm font-bold text-white">M</span>
         </div>
@@ -72,7 +70,6 @@ const DashboardLayout = () => {
         >
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
-
       </header>
 
       {/* =========================
@@ -86,7 +83,6 @@ const DashboardLayout = () => {
       )}
 
       <div className="mx-auto flex min-h-screen max-w-[1600px] p-3 sm:p-4 lg:p-6">
-
         {/* =========================
             Sidebar
         ========================= */}
@@ -116,14 +112,10 @@ const DashboardLayout = () => {
             ${open ? "translate-x-0" : "-translate-x-[120%]"}
           `}
         >
-
           {/* Logo */}
           <div className="mb-12 flex items-center justify-between">
-
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary shadow-lg shadow-brand-primary/25">
-              <span className="text-base font-bold text-white">
-                M
-              </span>
+              <span className="text-base font-bold text-white">M</span>
             </div>
 
             <button
@@ -132,12 +124,10 @@ const DashboardLayout = () => {
             >
               <X size={20} />
             </button>
-
           </div>
 
           {/* Navigation */}
           <nav className="space-y-3">
-
             {navItems.map((item) => {
               const Icon = item.icon;
 
@@ -160,66 +150,63 @@ const DashboardLayout = () => {
                     }
                   `}
                 >
+                  <Icon size={20} strokeWidth={1.8} />
 
-                  <Icon
-                    size={20}
-                    strokeWidth={1.8}
-                  />
-
-                  <span>
-                    {item.name}
-                  </span>
-
+                  <span>{item.name}</span>
                 </NavLink>
               );
             })}
-
           </nav>
 
           {/* Logout */}
           <div className="absolute bottom-5 left-5 right-5">
+            <button
+              className="
+              cursor-pointer
+    group relative flex w-full items-center justify-center gap-2
+    overflow-hidden rounded-full
+    bg-gradient-to-r from-brand-primary to-brand-accent
+    px-6 py-3
+    font-urbanist text-sm font-semibold text-white
+    shadow-[0_0_15px_rgba(140,32,250,0.35)]
+    transition-all duration-500 ease-out
+    hover:scale-[1.02]
+    hover:shadow-[0_0_25px_rgba(140,32,250,0.7),0_0_50px_rgba(97,53,247,0.35)]
+    active:scale-[0.98]
+  "
+            >
+              {/* Neon shine */}
+              <span
+                className="
+      absolute inset-0 -translate-x-full
+      bg-gradient-to-r from-transparent via-white/20 to-transparent
+      transition-transform duration-700
+      group-hover:translate-x-full
+    "
+              />
 
-            <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border-soft bg-surface-soft px-4 py-3 font-urbanist text-sm font-semibold text-brand-secondary transition hover:bg-purple-soft">
+              <LogOut
+                size={17}
+                className="relative z-10 transition-transform duration-300 group-hover:-translate-x-0.5"
+              />
 
-              <LogOut size={18} />
-
-              Logout
-
+              <span className="relative z-10">Logout</span>
             </button>
-
           </div>
-
         </aside>
 
         {/* =========================
             Main
         ========================= */}
         <main className="min-w-0 flex-1 pt-[72px] lg:pt-0 lg:pl-6">
-
-          {/* Top Header */}
-          <div className="mb-6 hidden items-center justify-end lg:flex">
-
-            <button className="flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-primary to-brand-accent px-6 py-3 font-urbanist text-sm font-semibold text-white shadow-lg shadow-brand-primary/20 transition hover:scale-[1.02]">
-
-              <LogOut size={17} />
-
-              Logout
-
-            </button>
-
-          </div>
+        
 
           {/* Page */}
           <div className=" !font-urbanest min-h-[calc(100vh-48px)] rounded-[28px] border border-border bg-surface-soft p-4 shadow-[0_20px_60px_rgba(91,33,182,0.08)] backdrop-blur-2xl sm:p-6 lg:p-8">
-
             <Outlet />
-
           </div>
-
         </main>
-
       </div>
-
     </div>
   );
 };

@@ -26,6 +26,7 @@ import {
   useGetStudentsQuery,
   useMarkAttendanceMutation,
 } from "../../redux/services/studentsApiServices/studentApiServices.js";
+import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices.js";
 
 
 const Attendance = () => {
@@ -33,7 +34,7 @@ const Attendance = () => {
   // DATE
   // =========================
   const [selectedDate, setSelectedDate] = useState(dayjs());
-
+  const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
   // =========================
   // SEARCH
   // =========================
@@ -504,13 +505,7 @@ const Attendance = () => {
     },
 
 
-    // =========================
-    // GUARDIAN
-    // =========================
-    {
-      title: "Guardian",
-      dataIndex: "guardian",
-    },
+    
 
 
     // =========================
@@ -522,169 +517,8 @@ const Attendance = () => {
     },
 
 
-    // =========================
-    // ATTENDANCE BUTTON
-    // =========================
-    {
-      title: "Mark Attendance",
+  
 
-      key: "attendance",
-
-      render: (_, record) => {
-
-        const attendance =
-          getAttendance(record);
-
-        const status =
-          attendance?.status;
-
-
-        return (
-
-          <div
-            className="
-              flex
-              items-center
-              gap-2
-            "
-          >
-
-            {/* PRESENT */}
-
-            <Button
-              size="small"
-              icon={
-                <CheckOutlined />
-              }
-              loading={
-                attendanceLoading
-              }
-              onClick={() =>
-                handleAttendance(
-                  record,
-                  "Present"
-                )
-              }
-              className={`
-                !rounded-lg
-
-                ${
-                  status ===
-                  "Present"
-
-                    ? "!bg-green-500 !border-green-500 !text-white"
-
-                    : "!border-green-300 !text-green-600"
-                }
-              `}
-            >
-              Present
-            </Button>
-
-
-            {/* ABSENT */}
-
-            <Button
-              size="small"
-              icon={
-                <CloseOutlined />
-              }
-              loading={
-                attendanceLoading
-              }
-              onClick={() =>
-                handleAttendance(
-                  record,
-                  "Absent"
-                )
-              }
-              className={`
-                !rounded-lg
-
-                ${
-                  status ===
-                  "Absent"
-
-                    ? "!bg-red-500 !border-red-500 !text-white"
-
-                    : "!border-red-300 !text-red-600"
-                }
-              `}
-            >
-              Absent
-            </Button>
-
-          </div>
-
-        );
-
-      },
-
-    },
-
-
-    // =========================
-    // CURRENT STATUS
-    // =========================
-    {
-      title: "Status",
-
-      key: "status",
-
-      render: (_, record) => {
-
-        const attendance =
-          getAttendance(record);
-
-
-        if (!attendance) {
-
-          return (
-            <Tag>
-              No Entry
-            </Tag>
-          );
-
-        }
-
-
-        if (
-          attendance.status ===
-          "Present"
-        ) {
-
-          return (
-
-            <Tag
-              color="success"
-              icon={
-                <CheckOutlined />
-              }
-            >
-              Present
-            </Tag>
-
-          );
-
-        }
-
-
-        return (
-
-          <Tag
-            color="error"
-            icon={
-              <CloseOutlined />
-            }
-          >
-            Absent
-          </Tag>
-
-        );
-
-      },
-
-    },
 
   ];
 
@@ -826,17 +660,60 @@ const Attendance = () => {
             "
           />
 
-
           <Select
             size="large"
             value={selectedClass}
-            onChange={
-              setSelectedClass
+            onChange={setSelectedClass}
+            className="w-full lg:w-44"
+            options={[
+              { value: "all", label: "All Classes" },
+              { value: "One", label: "One" },
+              { value: "Two", label: "Two" },
+              { value: "Three", label: "Three" },
+              { value: "Four", label: "Four" },
+              { value: "Five", label: "Five" },
+              { value: "Six", label: "Six" },
+            ]}
+          />
+          <Select
+            size="large"
+            placeholder="Select Batch"
+            loading={batchLoading}
+            options={
+              batchData?.data?.map((batch) => ({
+                value: "d",
+                label: batch.days,
+              })) || []
             }
-            options={classOptions}
-            className="w-44"
+          />
+          <Select
+            size="large"
+            placeholder="Select time"
+            options={[
+              {
+                value: "A1",
+                label: "A1",
+              },
+              {
+                value: "A2",
+                label: "A2",
+              },
+              {
+                value: "A3",
+                label: "A3",
+              },
+              {
+                value: "A4",
+                label: "A4",
+              },
+              {
+                value: "A5",
+                label: "A5",
+              },
+            ]}
           />
 
+          
 
           <Button
             size="large"

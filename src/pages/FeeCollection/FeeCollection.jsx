@@ -26,11 +26,13 @@ import {
 } from "react-icons/hi2";
 import FeeSummaryCards from "../../components/students/FeeSummaryCards";
 import { useGetStudentsQuery,useAddFeePaymentMutation,} from "../../redux/services/studentsApiServices/studentApiServices";
+import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices";
 const FeeCollection = () => {
   const [open, setOpen] = useState(false);
-
+  const [selectedClass, setSelectedClass] = useState("all");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const { data: studentData, isLoading } = useGetStudentsQuery();
+    const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
   const [addFeePayment, { isLoading: isPaymentLoading }] =
   useAddFeePaymentMutation();
   const students = studentData?.data;
@@ -330,22 +332,61 @@ max-w-md
 !rounded-xl"
           />
 
+          
           <Select
             size="large"
-            placeholder="
-All Classes"
-            className="
-w-44"
+            value={selectedClass}
+            onChange={setSelectedClass}
+            className="w-full lg:w-44"
+            options={[
+              { value: "all", label: "All Classes" },
+              { value: "One", label: "One" },
+              { value: "Two", label: "Two" },
+              { value: "Three", label: "Three" },
+              { value: "Four", label: "Four" },
+              { value: "Five", label: "Five" },
+              { value: "Six", label: "Six" },
+            ]}
           />
-
           <Select
             size="large"
-            placeholder="
-All Status"
-            className="
-w-44"
+            placeholder="Select Batch"
+            loading={batchLoading}
+            options={
+              batchData?.data?.map((batch) => ({
+                value: "d",
+                label: batch.days,
+              })) || []
+            }
+          />
+          <Select
+            size="large"
+            placeholder="Select time"
+            options={[
+              {
+                value: "A1",
+                label: "A1",
+              },
+              {
+                value: "A2",
+                label: "A2",
+              },
+              {
+                value: "A3",
+                label: "A3",
+              },
+              {
+                value: "A4",
+                label: "A4",
+              },
+              {
+                value: "A5",
+                label: "A5",
+              },
+            ]}
           />
 
+        
           <Button
             icon={<DownloadOutlined />}
             className="

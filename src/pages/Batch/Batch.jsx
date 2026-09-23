@@ -20,597 +20,226 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 
-
 import {
-
   useCreateBatchMutation,
-
   useGetBatchesQuery,
-
   useUpdateBatchMutation,
-
-  useDeleteBatchMutation
-
+  useDeleteBatchMutation,
 } from "../../redux/services/batchApiServices/batchApiServices";
 
-
-
-
-
 const Batch = () => {
-
-
   const [form] = Form.useForm();
-
-
 
   const [openModal, setOpenModal] = useState(false);
 
-
   const [editingBatch, setEditingBatch] = useState(null);
-
 
   const [deleteBatch, setDeleteBatch] = useState(null);
 
+  const { data: batchData, isLoading } = useGetBatchesQuery();
 
+  const [createBatch, { isLoading: isCreating }] = useCreateBatchMutation();
 
+  const [updateBatch, { isLoading: isUpdating }] = useUpdateBatchMutation();
 
-
-  const {
-    data: batchData,
-    isLoading
-  } = useGetBatchesQuery();
-
-
-
-  const [
-    createBatch,
-    {
-      isLoading:isCreating
-    }
-  ] = useCreateBatchMutation();
-
-
-
-
-  const [
-    updateBatch,
-    {
-      isLoading:isUpdating
-    }
-  ] = useUpdateBatchMutation();
-
-
-
-
-  const [
-    deleteBatchApi,
-    {
-      isLoading:isDeleting
-    }
-  ] = useDeleteBatchMutation();
-
-
-
-
-
-
-
+  const [deleteBatchApi, { isLoading: isDeleting }] = useDeleteBatchMutation();
 
   // =========================
   // Open Add Modal
   // =========================
 
-
-  const handleOpenAddModal =()=>{
-
-
+  const handleOpenAddModal = () => {
     setEditingBatch(null);
-
 
     form.resetFields();
 
-
     setOpenModal(true);
-
-
   };
-
-
-
-
-
-
 
   // =========================
   // Edit Batch
   // =========================
 
-
-  const handleEdit=(batch)=>{
-
-
+  const handleEdit = (batch) => {
     setEditingBatch(batch);
 
-
-
     form.setFieldsValue({
+      batchName: batch.batchName,
 
-      batchName:batch.batchName,
+      className: batch.className,
 
-      className:batch.className,
+      days: batch.days,
 
-      days:batch.days,
-
-      time:batch.time
-
+      time: batch.time,
     });
 
-
-
     setOpenModal(true);
-
-
   };
-
-
-
-
-
-
-
 
   // =========================
   // Submit
   // =========================
 
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
 
-  const handleSubmit=async()=>{
-
-
-    try{
-
-
-      const values =
-      await form.validateFields();
-
-
-
-
-      if(editingBatch){
-
-
+      if (editingBatch) {
         await updateBatch({
+          id: editingBatch._id,
 
-          id:editingBatch._id,
-
-          data:values
-
-
+          data: values,
         }).unwrap();
 
-
-
-        message.success(
-          "Batch updated successfully"
-        );
-
-
-
-      }
-
-
-      else{
-
-
-
+        message.success("Batch updated successfully");
+      } else {
         await createBatch(values).unwrap();
 
-
-
-        message.success(
-          "Batch added successfully"
-        );
-
-
+        message.success("Batch added successfully");
       }
-
-
-
-
-
 
       form.resetFields();
 
-
       setEditingBatch(null);
 
-
       setOpenModal(false);
-
-
-
-
+    } catch (error) {
+      message.error(error?.data?.message || "Something went wrong");
     }
-
-    catch(error){
-
-
-      message.error(
-
-        error?.data?.message ||
-
-        "Something went wrong"
-
-      );
-
-
-    }
-
-
   };
-
-
-
-
-
-
-
 
   // =========================
   // Delete
   // =========================
 
+  const handleDelete = async () => {
+    try {
+      await deleteBatchApi(deleteBatch._id).unwrap();
 
-  const handleDelete=async()=>{
-
-
-    try{
-
-
-      await deleteBatchApi(
-
-        deleteBatch._id
-
-      ).unwrap();
-
-
-
-      message.success(
-
-        "Batch deleted successfully"
-
-      );
-
-
+      message.success("Batch deleted successfully");
 
       setDeleteBatch(null);
-
-
-
+    } catch (error) {
+      message.error(error?.data?.message || "Delete failed");
     }
-
-
-    catch(error){
-
-
-      message.error(
-
-        error?.data?.message ||
-
-        "Delete failed"
-
-      );
-
-
-    }
-
-
-
   };
 
-
-
-
-
-
-
-  const getActionItems=(record)=>[
-
-
+  const getActionItems = (record) => [
     {
+      key: "edit",
 
-      key:"edit",
+      label: "Edit Batch",
 
-      label:"Edit Batch",
+      icon: <EditOutlined />,
 
-      icon:<EditOutlined/>,
-
-      onClick:()=>handleEdit(record)
-
+      onClick: () => handleEdit(record),
     },
 
-
-
     {
+      key: "delete",
 
-      key:"delete",
+      label: "Delete Batch",
 
-      label:"Delete Batch",
+      danger: true,
 
-      danger:true,
+      icon: <DeleteOutlined />,
 
-      icon:<DeleteOutlined/>,
-
-      onClick:()=>setDeleteBatch(record)
-
-    }
-
-
+      onClick: () => setDeleteBatch(record),
+    },
   ];
 
-
-
-
-
-
-  const columns=[
-
+  const columns = [
+  
 
     {
+      title: "Class",
 
-      title:"Batch Name",
+      dataIndex: "className",
 
-      dataIndex:"batchName",
+      key: "className",
 
-      key:"batchName",
-
-
-      render:(value)=>(
-
-
-        <span className="font-urbanist font-semibold text-text-primary">
-
+      render: (value) =>  <span className="font-urbanist font-semibold text-text-primary">
           {value}
-
-        </span>
-
-
-      )
-
-
+        </span>,
     },
 
-
-
     {
+      title: "Days",
 
-      title:"Class",
+      dataIndex: "days",
 
-      dataIndex:"className",
+      key: "days",
 
-      key:"className",
-
-
-      render:(value)=>(
-
-
-        <Tag className="font-urbanist">
-
-
-          {value}
-
-
-        </Tag>
-
-
-      )
-
-
-    },
-
-
-
-    {
-
-      title:"Days",
-
-      dataIndex:"days",
-
-      key:"days",
-
-
-      render:(days)=>(
-
-
-        <div className="flex flex-wrap gap-1">
-
-
-          {
-
-            days?.map(day=>(
-
-
-              <Tag
-
-              key={day}
-
-              className="font-urbanist"
-
-              >
-
-                {day}
-
-
-              </Tag>
-
-
-            ))
-
-
-          }
-
-
+      render: (days) => (
+        <div className="flex flex-wrap gap-1 font-semibold ">
+          {days?.map((day) => (
+            <Tag key={day} className="font-urbanist">
+              {day}
+            </Tag>
+          ))}
         </div>
-
-
-      )
-
-
+      ),
     },
 
     {
+      title: "Time",
 
-      title:"Time",
+      dataIndex: "time",
 
-      dataIndex:"time",
+      key: "time",
 
-      key:"time",
-
-
-      render:(time)=>(
-
-
-        <Tag
-
-        color="blue"
-
-        className="font-urbanist"
-
-        >
-
-          {time}
-
-
-        </Tag>
-
-
-      )
-
-
+      render: (time) => (
+       <div className="font-urbanist font-semibold text-purple-700 inline bg-purple-100/70 border border-purple-200 px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(139,92,246,0.18)]">
+  {time}
+</div>
+      ),
     },
 
-
-
-
     {
+      title: "",
 
-      title:"",
+      key: "action",
 
-      key:"action",
+      align: "right",
 
-      align:"right",
-
-
-
-      render:(_,record)=>(
-
-
+      render: (_, record) => (
         <Dropdown
-
-
-        menu={{
-
-          items:getActionItems(record)
-
-        }}
-
-
-
-        trigger={["click"]}
-
-
+          menu={{
+            items: getActionItems(record),
+          }}
+          trigger={["click"]}
         >
-
-
           <Button
-
-          type="text"
-
-          icon={<MoreOutlined/>}
-
-          className="font-urbanist"
-
+            type="text"
+            icon={<MoreOutlined />}
+            className="font-urbanist"
           />
-
-
         </Dropdown>
-
-
-      )
-
-
-    }
-
-
-
+      ),
+    },
   ];
-
-
-
-
-
-
-
-
 
   return (
-
     <div className="w-full font-urbanist">
-
-
-
-
-
       {/* Header */}
 
-
-
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-
         <div>
-
-
           <h1 className="font-urbanist text-2xl font-bold text-text-primary sm:text-3xl">
-
             Batch
-
           </h1>
 
-
-
           <p className="mt-1 font-urbanist text-sm text-text-muted">
-
             Manage all batches and class schedule
-
           </p>
-
-
         </div>
 
-
-
-
-
         <Button
-
-
-        type="primary"
-
-
-        size="large"
-
-
-        icon={<PlusOutlined/>}
-
-
-
-        onClick={handleOpenAddModal}
-
-
-
-        className="
+          type="primary"
+          size="large"
+          icon={<PlusOutlined />}
+          onClick={handleOpenAddModal}
+          className="
 
         !h-11
 
@@ -633,35 +262,15 @@ const Batch = () => {
         !shadow-lg
 
         "
-
-
         >
-
-
           Add Batch
-
-
         </Button>
-
-
-
       </div>
-
-
-
-
-
-
-
-
 
       {/* Table */}
 
-
-
       <div
-
-      className="
+        className="
 
       overflow-hidden
 
@@ -678,148 +287,54 @@ const Batch = () => {
       backdrop-blur-xl
 
       "
-
-
       >
-
-
         <Table
+          columns={columns}
+          dataSource={batchData?.data || []}
+          rowKey="_id"
+          loading={isLoading}
+          className="font-urbanist"
+          pagination={{
+            pageSize: 8,
 
-
-        columns={columns}
-
-
-        dataSource={batchData?.data || []}
-
-
-        rowKey="_id"
-
-
-        loading={isLoading}
-
-
-        className="font-urbanist"
-
-
-        pagination={{
-
-          pageSize:8,
-
-          showSizeChanger:false
-
-        }}
-
-
+            showSizeChanger: false,
+          }}
         />
-
-
       </div>
-
-
-
-
-
-
-
-
 
       {/* Add Edit Modal */}
 
-
-
       <Modal
+        open={openModal}
+        centered
+        width={600}
+        destroyOnClose
+        onCancel={() => setOpenModal(false)}
+        title={
+          <div className="font-urbanist">
+            <h2 className="font-urbanist text-xl font-bold">
+              {editingBatch ? "Edit Batch" : "Add Batch"}
+            </h2>
 
+            <p className="font-urbanist text-sm text-gray-500">
+              Enter batch information
+            </p>
+          </div>
+        }
+        footer={[
+          <Button
+            key="cancel"
+            className="!rounded-xl !font-urbanist"
+            onClick={() => setOpenModal(false)}
+          >
+            Cancel
+          </Button>,
 
-      open={openModal}
-
-
-      centered
-
-
-      width={600}
-
-
-      destroyOnClose
-
-
-
-      onCancel={()=>setOpenModal(false)}
-
-
-
-
-      title={
-
-
-        <div className="font-urbanist">
-
-
-          <h2 className="font-urbanist text-xl font-bold">
-
-
-          {
-
-            editingBatch
-
-            ?
-
-            "Edit Batch"
-
-            :
-
-            "Add Batch"
-
-          }
-
-
-          </h2>
-
-
-
-          <p className="font-urbanist text-sm text-gray-500">
-
-            Enter batch information
-
-          </p>
-
-
-        </div>
-
-
-      }
-
-
-
-      footer={[
-
-
-
-        <Button
-
-        key="cancel"
-
-        className="!rounded-xl !font-urbanist"
-
-        onClick={()=>setOpenModal(false)}
-
-        >
-
-          Cancel
-
-        </Button>,
-
-
-
-
-        <Button
-
-        key="submit"
-
-        type="primary"
-
-        loading={isCreating || isUpdating}
-
-        className="
+          <Button
+            key="submit"
+            type="primary"
+            loading={isCreating || isUpdating}
+            className="
 
         !rounded-xl
 
@@ -836,554 +351,144 @@ const Batch = () => {
         !font-semibold
 
         "
-
-        onClick={handleSubmit}
-
-        >
-
-
-
-        {
-
-          editingBatch
-
-          ?
-
-          "Update Batch"
-
-          :
-
-          "Add Batch"
-
-        }
-
-
-
-        </Button>
-
-
-
-      ]}
-
-
+            onClick={handleSubmit}
+          >
+            {editingBatch ? "Update Batch" : "Add Batch"}
+          </Button>,
+        ]}
       >
-
-
-
-
-
-
-      <Form
-
-
-      form={form}
-
-
-      layout="vertical"
-
-
-      className="mt-5 font-urbanist"
-
-
-      >
-
-
-
-
-
-      <Form.Item
-
-
-      label="Batch Name"
-
-
-      name="batchName"
-
-
-
-      rules={[
-
-        {
-
-          required:true,
-
-          message:"Enter batch name"
-
-        }
-
-      ]}
-
-
-      >
-
-
-      <Input
-
-
-      size="large"
-
-
-      placeholder="Example: Batch A"
-
-
-      className="!rounded-xl !font-urbanist"
-
-
-      />
-
-
-      </Form.Item>
-
-
-
-
-
-
-
-
-      <Form.Item
-
-
-      label="Class"
-
-
-      name="className"
-
-
-
-      rules={[
-
-        {
-
-          required:true,
-
-          message:"Select class"
-
-        }
-
-      ]}
-
-
-      >
-
-
-
-      <Select
-
-
-      size="large"
-
-
-      placeholder="Select class"
-
-
-      className="!font-urbanist"
-
-
-
-      options={[
-
-        "One",
-
-        "Two",
-
-        "Three",
-
-        "Four",
-
-        "Five",
-
-        "Six"
-
-      ].map(item=>(
-
-        {
-
-          value:item,
-
-          label:item
-
-        }
-
-      ))}
-
-
-      />
-
-
-
-      </Form.Item>
-
-
-
-
-
-
-
-
-
-      <Form.Item
-
-
-      label="Class Days"
-
-
-      name="days"
-
-
-
-      rules={[
-
-        {
-
-          required:true,
-
-          message:"Select class days"
-
-        }
-
-      ]}
-
-
-      >
-
-
-
-      <Select
-
-
-      mode="multiple"
-
-
-      size="large"
-
-
-      placeholder="Select days"
-
-
-      className="!font-urbanist"
-
-
-
-      options={[
-
-
-        "Saturday",
-
-        "Sunday",
-
-        "Monday",
-
-        "Tuesday",
-
-        "Wednesday",
-
-        "Thursday"
-
-
-
-      ].map(day=>(
-
-
-        {
-
-          value:day,
-
-          label:day
-
-        }
-
-
-      ))}
-
-
-
-      />
-
-
-
-      </Form.Item>
-
-
-
-
-
-
-
-
-
-      <Form.Item
-
-
-      label="Class Time"
-
-
-      name="time"
-
-
-
-      rules={[
-
-        {
-
-          required:true,
-
-          message:"Select time"
-
-        }
-
-      ]}
-
-
-      >
-
-
-
-
-      <Select
-
-
-      size="large"
-
-
-      placeholder="Select time"
-
-
-      className="!font-urbanist"
-
-
-
-      options={[
-
-
-        {
-
-          value:"Morning",
-
-          label:"Morning"
-
-        },
-
-
-        {
-
-          value:"Noon",
-
-          label:"Noon"
-
-        },
-
-
-        {
-
-          value:"Afternoon",
-
-          label:"Afternoon"
-
-        },
-
-
-        {
-
-          value:"Evening",
-
-          label:"Evening"
-
-        }
-
-
-
-      ]}
-
-
-      />
-
-
-
-      </Form.Item>
-
-
-
-
-
-      </Form>
-
-
-
-
+        <Form form={form} layout="vertical" className="mt-5 font-urbanist">
+          <Form.Item
+            label="Class"
+            name="className"
+            rules={[
+              {
+                required: true,
+
+                message: "Select class",
+              },
+            ]}
+          >
+            <Select
+              size="large"
+              placeholder="Select class"
+              className="!font-urbanist"
+              options={["One", "Two", "Three", "Four", "Five", "Six"].map(
+                (item) => ({
+                  value: item,
+
+                  label: item,
+                }),
+              )}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Class Days"
+            name="days"
+            rules={[
+              {
+                required: true,
+                message: "Please select class days",
+              },
+            ]}
+          >
+            <Select
+              size="large"
+              placeholder="Select class days"
+              className="w-full"
+              options={[
+                {
+                  value: "Saturday, Monday, Wednesday",
+                  label: "Saturday + Monday + Wednesday",
+                },
+                {
+                  value: "Sunday, Tuesday, Thursday",
+                  label: "Sunday + Tuesday + Thursday",
+                },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Class Time"
+            name="time"
+            rules={[
+              {
+                required: true,
+
+                message: "Select time",
+              },
+            ]}
+          >
+            <Select
+              size="large"
+              placeholder="Select time"
+              className="!font-urbanist"
+              options={[
+                {
+                  value: "Morning",
+
+                  label: "Morning",
+                },
+
+                {
+                  value: "Afternoon",
+
+                  label: "Afternoon",
+                },
+
+                {
+                  value: "Evening",
+
+                  label: "Evening",
+                },
+              ]}
+            />
+          </Form.Item>
+        </Form>
       </Modal>
-
-
-
-
-
-
-
-
 
       {/* Delete Modal */}
 
-
-
       <Modal
+        open={!!deleteBatch}
+        centered
+        onCancel={() => setDeleteBatch(null)}
+        footer={[
+          <Button
+            key="cancel"
+            className="!font-urbanist"
+            onClick={() => setDeleteBatch(null)}
+          >
+            Cancel
+          </Button>,
 
-
-
-      open={!!deleteBatch}
-
-
-
-      centered
-
-
-
-      onCancel={()=>setDeleteBatch(null)}
-
-
-
-      footer={[
-
-
-
-        <Button
-
-        key="cancel"
-
-        className="!font-urbanist"
-
-        onClick={()=>setDeleteBatch(null)}
-
-        >
-
-          Cancel
-
-        </Button>,
-
-
-
-
-        <Button
-
-
-        key="delete"
-
-
-        danger
-
-
-        type="primary"
-
-
-        loading={isDeleting}
-
-
-        className="!font-urbanist"
-
-
-        onClick={handleDelete}
-
-
-        >
-
-
-          Delete
-
-
-        </Button>
-
-
-
-      ]}
-
-
-
-
+          <Button
+            key="delete"
+            danger
+            type="primary"
+            loading={isDeleting}
+            className="!font-urbanist"
+            onClick={handleDelete}
+          >
+            Delete
+          </Button>,
+        ]}
       >
+        <div className="flex gap-3 py-5 font-urbanist">
+          <ExclamationCircleOutlined className="text-2xl text-red-500" />
 
+          <div>
+            <h3 className="font-urbanist text-lg font-bold">Are you sure?</h3>
 
-
-      <div className="flex gap-3 py-5 font-urbanist">
-
-
-
-        <ExclamationCircleOutlined
-
-        className="text-2xl text-red-500"
-
-        />
-
-
-
-        <div>
-
-
-        <h3 className="font-urbanist text-lg font-bold">
-
-          Are you sure?
-
-        </h3>
-
-
-
-        <p className="font-urbanist text-sm text-gray-500">
-
-          Delete this batch permanently
-
-        </p>
-
-
-
+            <p className="font-urbanist text-sm text-gray-500">
+              Delete this batch permanently
+            </p>
+          </div>
         </div>
-
-
-
-      </div>
-
-
-
-
       </Modal>
-
-
-
-
-
-
     </div>
-
   );
-
-
 };
 
-
-
 export default Batch;
-
-{/* Days */}
-{/* <Form.Item
-  label="Class Days"
-  name="days"
-  rules={[
-    {
-      required: true,
-      message: "Please select class days",
-    },
-  ]}
->
-  <Select
-    size="large"
-    placeholder="Select class days"
-    className="w-full"
-    options={[
-      {
-        value: "Saturday, Monday, Wednesday",
-        label: "Saturday + Monday + Wednesday",
-      },
-      {
-        value: "Sunday, Tuesday, Thursday",
-        label: "Sunday + Tuesday + Thursday",
-      },
-    ]}
-  />
-</Form.Item> */}

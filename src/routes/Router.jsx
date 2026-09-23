@@ -7,6 +7,7 @@ import Attendance from "../pages/Attendance/Attendance";
 import FeeCollection from "../pages/FeeCollection/FeeCollection";
 import ResultManagement from "../pages/ResultManagement/ResultManagement";
 import Batch from "../pages/Batch/Batch";
+import Login from "../pages/Login/Login";
 
 
 export const router = createBrowserRouter([
@@ -35,5 +36,8 @@ export const router = createBrowserRouter([
         element: <Batch/>,
       },
     ],
-  },
+  },{
+    path:"/login",
+    element: <Login/>
+  }
 ]);
