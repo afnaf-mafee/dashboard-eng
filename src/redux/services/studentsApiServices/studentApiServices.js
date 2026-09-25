@@ -1,9 +1,7 @@
 import { baseApi } from "../../api/baseApi";
 
-
 export const studentApiService = baseApi.injectEndpoints({
   endpoints: (build) => ({
-
     // CREATE STUDENT
     createStudent: build.mutation({
       query: (studentData) => ({
@@ -14,20 +12,16 @@ export const studentApiService = baseApi.injectEndpoints({
       invalidatesTags: ["Student"],
     }),
 
+    // GET ALL STUDENTS WITH FILTER
+    getStudents: build.query({
+      query: (params) => ({
+        url: "/students",
+        method: "GET",
+        params,
+      }),
 
-  // GET ALL STUDENTS WITH FILTER
-getStudents: build.query({
-
-  query: (params) => ({
-    url: "/students",
-    method: "GET",
-    params,
-  }),
-
-  providesTags: ["Student"],
-
-}),
-
+      providesTags: ["Student"],
+    }),
 
     // GET SINGLE STUDENT
     getStudentById: build.query({
@@ -37,7 +31,6 @@ getStudents: build.query({
       }),
       providesTags: ["Student"],
     }),
-
 
     // UPDATE STUDENT
     updateStudent: build.mutation({
@@ -49,21 +42,26 @@ getStudents: build.query({
       invalidatesTags: ["Student"],
     }),
 
-// ADD FEE PAYMENT
-addFeePayment: build.mutation({
-  query: ({ id, paymentData }) => ({
-    url: `/students/${id}/fee-payment`,
-    method: "POST",
-    body: paymentData,
-  }),
-  invalidatesTags: ["Student"],
-}),
-  markAttendance: build.mutation({
+    // ADD FEE PAYMENT
+    addFeePayment: build.mutation({
+      query: ({ id, paymentData }) => ({
+        url: `/students/${id}/fee-payment`,
+        method: "POST",
+        body: paymentData,
+      }),
+      invalidatesTags: ["Student"],
+    }),
+    markAttendance: build.mutation({
       query: ({ id, attendanceData }) => ({
         url: `/students/${id}/attendance`,
+
         method: "PATCH",
-        body: attendanceData,
+
+        body: {
+          attendanceData,
+        },
       }),
+
       invalidatesTags: ["Student"],
     }),
     // DELETE STUDENT
@@ -74,10 +72,21 @@ addFeePayment: build.mutation({
       }),
       invalidatesTags: ["Student"],
     }),
+  bulkMarkAttendance: build.mutation({
 
+  query: (data) => ({
+    url: "/students/bulk-attendance",
+    method: "PATCH",
+    body: data,
+  }),
+
+  invalidatesTags:["Student"],
+
+}),
+
+  
   }),
 });
-
 
 export const {
   useCreateStudentMutation,
@@ -87,4 +96,6 @@ export const {
   useDeleteStudentMutation,
   useAddFeePaymentMutation,
   useMarkAttendanceMutation,
+    useBulkMarkAttendanceMutation,
+
 } = studentApiService;

@@ -151,17 +151,7 @@ const Batch = () => {
   const columns = [
   
 
-    {
-      title: "Class",
-
-      dataIndex: "className",
-
-      key: "className",
-
-      render: (value) =>  <span className="font-urbanist font-semibold text-text-primary">
-          {value}
-        </span>,
-    },
+  
 
     {
       title: "Days",
@@ -181,20 +171,7 @@ const Batch = () => {
       ),
     },
 
-    {
-      title: "Time",
-
-      dataIndex: "time",
-
-      key: "time",
-
-      render: (time) => (
-       <div className="font-urbanist font-semibold text-purple-700 inline bg-purple-100/70 border border-purple-200 px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(139,92,246,0.18)]">
-  {time}
-</div>
-      ),
-    },
-
+  
     {
       title: "",
 
@@ -358,30 +335,7 @@ const Batch = () => {
         ]}
       >
         <Form form={form} layout="vertical" className="mt-5 font-urbanist">
-          <Form.Item
-            label="Class"
-            name="className"
-            rules={[
-              {
-                required: true,
-
-                message: "Select class",
-              },
-            ]}
-          >
-            <Select
-              size="large"
-              placeholder="Select class"
-              className="!font-urbanist"
-              options={["One", "Two", "Three", "Four", "Five", "Six"].map(
-                (item) => ({
-                  value: item,
-
-                  label: item,
-                }),
-              )}
-            />
-          </Form.Item>
+        
           <Form.Item
             label="Class Days"
             name="days"
@@ -398,53 +352,18 @@ const Batch = () => {
               className="w-full"
               options={[
                 {
-                  value: "Saturday, Monday, Wednesday",
+                  value: "1",
                   label: "Saturday + Monday + Wednesday",
                 },
                 {
-                  value: "Sunday, Tuesday, Thursday",
+                  value: "2",
                   label: "Sunday + Tuesday + Thursday",
                 },
               ]}
             />
           </Form.Item>
 
-          <Form.Item
-            label="Class Time"
-            name="time"
-            rules={[
-              {
-                required: true,
-
-                message: "Select time",
-              },
-            ]}
-          >
-            <Select
-              size="large"
-              placeholder="Select time"
-              className="!font-urbanist"
-              options={[
-                {
-                  value: "Morning",
-
-                  label: "Morning",
-                },
-
-                {
-                  value: "Afternoon",
-
-                  label: "Afternoon",
-                },
-
-                {
-                  value: "Evening",
-
-                  label: "Evening",
-                },
-              ]}
-            />
-          </Form.Item>
+        
         </Form>
       </Modal>
 

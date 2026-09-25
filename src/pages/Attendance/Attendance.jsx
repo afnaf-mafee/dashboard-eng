@@ -19,21 +19,24 @@ import {
 } from "@ant-design/icons";
 
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import { GrGroup } from "react-icons/gr";
 import { FiSend } from "react-icons/fi";
 import {
   useGetStudentsQuery,
-  useMarkAttendanceMutation,
+  useBulkMarkAttendanceMutation,
 } from "../../redux/services/studentsApiServices/studentApiServices.js";
 import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices.js";
-
 
 const Attendance = () => {
   // =========================
   // DATE
   // =========================
-  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [selectedDate, setSelectedDate] = useState(dayjs().tz("Asia/Dhaka"));
   const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
   // =========================
   // SEARCH
@@ -54,40 +57,30 @@ const Attendance = () => {
   // MESSAGE
   // =========================
   const [smsMessage, setSmsMessage] = useState(
-    "Your child was absent today. Please contact the school if needed."
+    "Your child was absent today. Please contact the school if needed.",
   );
 
   // =========================
   // GET STUDENTS
   // =========================
-  const {
-    data,
-    isLoading,
-    isFetching,
-  } = useGetStudentsQuery();
+  const { data, isLoading, isFetching } = useGetStudentsQuery();
 
   // =========================
   // ATTENDANCE MUTATION
   // =========================
-  const [
-    markAttendance,
-    { isLoading: attendanceLoading },
-  ] = useMarkAttendanceMutation();
-
+  const [bulkMarkAttendance, { isLoading: attendanceLoading }] =
+    useBulkMarkAttendanceMutation();
 
   // =========================
   // STUDENT DATA
   // =========================
   const students = data?.data || [];
 
-
   // =========================
   // SELECTED DATE
   // =========================
-  const dateString =
-    selectedDate.format("YYYY-MM-DD");
 
-
+  const dateString = selectedDate.tz("Asia/Dhaka").format("YYYY-MM-DD");
   // =========================
   // GET STUDENT ATTENDANCE
   // FOR SELECTED DATE
@@ -98,325 +91,140 @@ const Attendance = () => {
     }
 
     return student.attendance.find((item) => {
-      return (
-        dayjs(item.date).format("YYYY-MM-DD") ===
-        dateString
-      );
+      return dayjs(item.date).format("YYYY-MM-DD") === dateString;
     });
   };
-
 
   // =========================
   // FILTER STUDENTS
   // =========================
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
-
-      const search =
-        searchText.trim().toLowerCase();
+      const search = searchText.trim().toLowerCase();
 
       const matchesSearch =
         !search ||
-        student.name
-          ?.toLowerCase()
-          .includes(search) ||
-        String(student.studentId)
-          .toLowerCase()
-          .includes(search) ||
+        student.name?.toLowerCase().includes(search) ||
+        String(student.studentId).toLowerCase().includes(search) ||
         student.phone?.includes(search);
 
       const matchesClass =
-        selectedClass === "all" ||
-        student.className === selectedClass;
+        selectedClass === "all" || student.className === selectedClass;
 
-      return (
-        matchesSearch &&
-        matchesClass
-      );
+      return matchesSearch && matchesClass;
     });
-  }, [
-    students,
-    searchText,
-    selectedClass,
-  ]);
-
-
-  // =========================
-  // CLASS OPTIONS
-  // =========================
-  const classOptions = useMemo(() => {
-
-    const classes = [
-      ...new Set(
-        students
-          .map((student) => student.className)
-          .filter(Boolean)
-      ),
-    ];
-
-    return [
-      {
-        value: "all",
-        label: "All Classes",
-      },
-
-      ...classes.map((className) => ({
-        value: className,
-        label: className,
-      })),
-    ];
-
-  }, [students]);
-
+  }, [students, searchText, selectedClass]);
 
   // =========================
   // MARK ATTENDANCE
   // =========================
-  const handleAttendance = async (
-    student,
-    status
-  ) => {
-
-    try {
-
-      await markAttendance({
-        id: student._id,
-
-        attendanceData: {
-          date: dateString,
-          status: status,
-          note: "",
-        },
-
-      }).unwrap();
-
-
-      message.success(
-        `${student.name} marked as ${status}`
-      );
-
-
-      // =========================
-      // ABSENT হলে SELECT হবে
-      // =========================
-      if (status === "Absent") {
-
-        setSelectedStudents((prev) => {
-
-          const alreadySelected =
-            prev.some(
-              (item) =>
-                item._id === student._id
-            );
-
-          if (alreadySelected) {
-            return prev;
-          }
-
-          return [
-            ...prev,
-            student,
-          ];
-        });
-
-      }
-
-
-      // =========================
-      // PRESENT হলে
-      // SELECTED থেকে REMOVE
-      // =========================
-      if (status === "Present") {
-
-        setSelectedStudents((prev) =>
-          prev.filter(
-            (item) =>
-              item._id !== student._id
-          )
-        );
-
-      }
-
-    } catch (error) {
-
-      message.error(
-        error?.data?.message ||
-          error?.error ||
-          "Attendance update failed"
-      );
-
-    }
-  };
-
 
   // =========================
   // TABLE ROW SELECTION
   // =========================
   const rowSelection = {
+    selectedRowKeys: selectedStudents.map((student) => student._id),
 
-    selectedRowKeys:
-      selectedStudents.map(
-        (student) => student._id
-      ),
-
-    onChange: (
-      selectedRowKeys,
-      selectedRows
-    ) => {
-
-      setSelectedStudents(
-        selectedRows
-      );
-
+    onChange: (selectedRowKeys, selectedRows) => {
+      setSelectedStudents(selectedRows);
     },
-
   };
-
 
   // =========================
   // SELECT ALL ABSENT
   // =========================
   const handleSelectAllAbsent = () => {
+    const absentStudents = filteredStudents.filter((student) => {
+      const attendance = getAttendance(student);
 
-    const absentStudents =
-      filteredStudents.filter(
-        (student) => {
+      return attendance?.status === "Absent";
+    });
 
-          const attendance =
-            getAttendance(student);
+    setSelectedStudents(absentStudents);
 
-          return (
-            attendance?.status ===
-            "Absent"
-          );
-
-        }
-      );
-
-
-    setSelectedStudents(
-      absentStudents
-    );
-
-
-    if (
-      absentStudents.length === 0
-    ) {
-
-      message.info(
-        "No absent students found for this date"
-      );
+    if (absentStudents.length === 0) {
+      message.info("No absent students found for this date");
 
       return;
     }
 
-
-    message.success(
-      `${absentStudents.length} absent students selected`
-    );
-
+    message.success(`${absentStudents.length} absent students selected`);
   };
-
 
   // =========================
   // CLEAR SELECTION
   // =========================
   const handleClearSelection = () => {
-
     setSelectedStudents([]);
-
   };
-
 
   // =========================
   // SEND MESSAGE
   // =========================
   const handleSendMessage = async () => {
+    try {
+      if (selectedStudents.length === 0) {
+        message.warning("Please select students first");
 
-    if (
-      selectedStudents.length === 0
-    ) {
+        return;
+      }
 
-      message.warning(
-        "Please select students first"
-      );
+      if (!smsMessage.trim()) {
+        message.warning("Please write a message");
 
-      return;
-    }
+        return;
+      }
 
+      // =========================
+      // SAVE ATTENDANCE
+      // =========================
 
-    if (
-      !smsMessage.trim()
-    ) {
+      const studentIds = selectedStudents.map((student) => student._id);
 
-      message.warning(
-        "Please write a message"
-      );
+      await bulkMarkAttendance({
+        students: studentIds,
 
-      return;
-    }
+        date: dateString,
 
+        status: "Absent",
 
-    // =========================
-    // SMS RECIPIENTS
-    // =========================
-    const recipients =
-      selectedStudents.map(
-        (student) => ({
-
-          studentId:
-            student.studentId,
-
-          studentName:
-            student.name,
-
-          guardian:
-            student.guardian,
-
-          phone:
-            student.phone,
-
-        })
-      );
-
-
-    // =========================
-    // এখন তোমার SMS API-তে
-    // এই data পাঠাবে
-    // =========================
-    console.log("SMS DATA:", {
-
-      date: dateString,
-
-      message: smsMessage,
-
-      recipients,
-
-    });
-
-
-    /*
-      Example:
-
-      await sendBulkSMS({
-        message: smsMessage,
-        recipients,
+        note: "",
       }).unwrap();
-    */
 
+      // =========================
+      // SMS DATA
+      // =========================
 
-    message.success(
-      `Message prepared for ${selectedStudents.length} guardians`
-    );
+      const recipients = selectedStudents.map((student) => ({
+        studentId: student.studentId,
 
+        studentName: student.name,
+
+        guardian: student.guardian,
+
+        phone: student.phone,
+      }));
+
+      console.log("SMS DATA:", {
+        date: dateString,
+
+        message: smsMessage,
+
+        recipients,
+      });
+
+      message.success(`${selectedStudents.length} students attendance saved`);
+
+      setSelectedStudents([]);
+    } catch (error) {
+      message.error(error?.data?.message || "Attendance save failed");
+    }
   };
-
 
   // =========================
   // TABLE COLUMNS
   // =========================
   const columns = [
-
     // =========================
     // NAME
     // =========================
@@ -426,9 +234,7 @@ const Attendance = () => {
       dataIndex: "name",
 
       render: (text) => (
-
         <div className="flex items-center gap-3">
-
           <div
             className="
               w-10
@@ -444,21 +250,13 @@ const Attendance = () => {
               font-bold
             "
           >
-            {text
-              ?.charAt(0)
-              ?.toUpperCase()}
+            {text?.charAt(0)?.toUpperCase()}
           </div>
 
-          <span className="font-semibold">
-            {text}
-          </span>
-
+          <span className="font-semibold">{text}</span>
         </div>
-
       ),
-
     },
-
 
     // =========================
     // STUDENT ID
@@ -467,7 +265,6 @@ const Attendance = () => {
       title: "Student ID",
       dataIndex: "studentId",
     },
-
 
     // =========================
     // CLASS
@@ -478,7 +275,6 @@ const Attendance = () => {
       dataIndex: "className",
 
       render: (value) => (
-
         <Tag
           className="
             !border-0
@@ -490,11 +286,8 @@ const Attendance = () => {
         >
           {value}
         </Tag>
-
       ),
-
     },
-
 
     // =========================
     // SECTION
@@ -504,10 +297,6 @@ const Attendance = () => {
       dataIndex: "section",
     },
 
-
-    
-
-
     // =========================
     // PHONE
     // =========================
@@ -515,21 +304,13 @@ const Attendance = () => {
       title: "Phone",
       dataIndex: "phone",
     },
-
-
-  
-
-
   ];
-
 
   // =========================
   // LOADING
   // =========================
   if (isLoading) {
-
     return (
-
       <div
         className="
           flex
@@ -539,16 +320,11 @@ const Attendance = () => {
       >
         <Spin size="large" />
       </div>
-
     );
-
   }
 
-
   return (
-
     <div className="w-full">
-
       {/* =========================
           HEADER
       ========================= */}
@@ -564,9 +340,7 @@ const Attendance = () => {
           mb-6
         "
       >
-
         <div>
-
           <h1
             className="
               text-3xl
@@ -585,9 +359,7 @@ const Attendance = () => {
           >
             Mark attendance and notify selected guardians
           </p>
-
         </div>
-
 
         {/* DATE */}
 
@@ -595,27 +367,21 @@ const Attendance = () => {
           size="large"
           value={selectedDate}
           onChange={(date) => {
-
             if (!date) {
               return;
             }
 
-            setSelectedDate(date);
+            setSelectedDate(date.tz("Asia/Dhaka"));
 
             // Date change হলে
             // selection clear
             setSelectedStudents([]);
-
           }}
           format="DD MMM YYYY"
-          suffixIcon={
-            <CalendarOutlined />
-          }
+          suffixIcon={<CalendarOutlined />}
           className="!rounded-xl"
         />
-
       </div>
-
 
       {/* =========================
           SEARCH + FILTER
@@ -632,7 +398,6 @@ const Attendance = () => {
           shadow-[0_20px_60px_rgba(91,33,182,0.10)]
         "
       >
-
         <div
           className="
             flex
@@ -641,19 +406,12 @@ const Attendance = () => {
             gap-3
           "
         >
-
           <Input
             size="large"
-            prefix={
-              <SearchOutlined />
-            }
+            prefix={<SearchOutlined />}
             placeholder="Search student..."
             value={searchText}
-            onChange={(e) =>
-              setSearchText(
-                e.target.value
-              )
-            }
+            onChange={(e) => setSearchText(e.target.value)}
             className="
               !rounded-xl
               max-w-md
@@ -713,13 +471,9 @@ const Attendance = () => {
             ]}
           />
 
-          
-
           <Button
             size="large"
-            onClick={
-              handleSelectAllAbsent
-            }
+            onClick={handleSelectAllAbsent}
             className="
               !rounded-xl
               !border-purple-300
@@ -731,26 +485,18 @@ const Attendance = () => {
             ✓ Select All Absent
           </Button>
 
-
           <Button
             size="large"
-            onClick={
-              handleClearSelection
-            }
-            disabled={
-              selectedStudents.length === 0
-            }
+            onClick={handleClearSelection}
+            disabled={selectedStudents.length === 0}
             className="
               !rounded-xl
             "
           >
             Clear Selection
           </Button>
-
         </div>
-
       </div>
-
 
       {/* =========================
           CONTENT
@@ -765,7 +511,6 @@ const Attendance = () => {
           gap-5
         "
       >
-
         {/* =========================
             TABLE
         ========================= */}
@@ -783,16 +528,11 @@ const Attendance = () => {
             overflow-hidden
           "
         >
-
           <Table
             columns={columns}
-            dataSource={
-              filteredStudents
-            }
+            dataSource={filteredStudents}
             rowKey="_id"
-            rowSelection={
-              rowSelection
-            }
+            rowSelection={rowSelection}
             loading={isFetching}
             pagination={{
               pageSize: 10,
@@ -802,9 +542,7 @@ const Attendance = () => {
               x: 1100,
             }}
           />
-
         </div>
-
 
         {/* =========================
             MESSAGE PANEL
@@ -821,7 +559,6 @@ const Attendance = () => {
             shadow-[0_20px_60px_rgba(91,33,182,0.10)]
           "
         >
-
           <div
             className="
               flex
@@ -830,7 +567,6 @@ const Attendance = () => {
               mb-5
             "
           >
-
             <div
               className="
                 w-10
@@ -846,9 +582,7 @@ const Attendance = () => {
               <FiSend size={19} />
             </div>
 
-
             <div>
-
               <h2
                 className="
                   text-xl
@@ -867,11 +601,8 @@ const Attendance = () => {
               >
                 Selected guardians
               </p>
-
             </div>
-
           </div>
-
 
           {/* =========================
               SELECTED COUNT
@@ -889,14 +620,9 @@ const Attendance = () => {
               p-4
             "
           >
-
-            <GrGroup
-              size={24}
-              className="text-purple-600"
-            />
+            <GrGroup size={24} className="text-purple-600" />
 
             <div>
-
               <p
                 className="
                   text-sm
@@ -916,19 +642,14 @@ const Attendance = () => {
               >
                 Only selected students will receive the message
               </p>
-
             </div>
-
           </div>
-
 
           {/* =========================
               SELECTED STUDENT LIST
           ========================= */}
 
-          {selectedStudents.length >
-            0 && (
-
+          {selectedStudents.length > 0 && (
             <div
               className="
                 mt-4
@@ -937,13 +658,10 @@ const Attendance = () => {
                 space-y-2
               "
             >
-
-              {selectedStudents.map(
-                (student) => (
-
-                  <div
-                    key={student._id}
-                    className="
+              {selectedStudents.map((student) => (
+                <div
+                  key={student._id}
+                  className="
                       flex
                       items-center
                       justify-between
@@ -954,53 +672,38 @@ const Attendance = () => {
                       px-3
                       py-2
                     "
-                  >
-
-                    <div>
-
-                      <p
-                        className="
+                >
+                  <div>
+                    <p
+                      className="
                           text-sm
                           font-semibold
                         "
-                      >
-                        {student.name}
-                      </p>
+                    >
+                      {student.name}
+                    </p>
 
-                      <p
-                        className="
+                    <p
+                      className="
                           text-xs
                           text-gray-500
                         "
-                      >
-                        {student.phone}
-                      </p>
-
-                    </div>
-
-
-                    <Tag
-                      color="error"
                     >
-                      Absent
-                    </Tag>
-
+                      {student.phone}
+                    </p>
                   </div>
 
-                )
-              )}
-
+                  <Tag color="error">Absent</Tag>
+                </div>
+              ))}
             </div>
-
           )}
-
 
           {/* =========================
               MESSAGE
           ========================= */}
 
           <div className="mt-5">
-
             <label
               className="
                 block
@@ -1012,14 +715,9 @@ const Attendance = () => {
               Message
             </label>
 
-
             <textarea
               value={smsMessage}
-              onChange={(e) =>
-                setSmsMessage(
-                  e.target.value
-                )
-              }
+              onChange={(e) => setSmsMessage(e.target.value)}
               maxLength={200}
               placeholder="Write your message..."
               className="
@@ -1039,7 +737,6 @@ const Attendance = () => {
               "
             />
 
-
             <div
               className="
                 text-right
@@ -1050,9 +747,7 @@ const Attendance = () => {
             >
               {smsMessage.length}/200
             </div>
-
           </div>
-
 
           {/* =========================
               SEND BUTTON
@@ -1062,16 +757,9 @@ const Attendance = () => {
             type="primary"
             block
             size="large"
-            icon={
-              <FiSend />
-            }
-            disabled={
-              selectedStudents.length === 0 ||
-              !smsMessage.trim()
-            }
-            onClick={
-              handleSendMessage
-            }
+            icon={<FiSend />}
+            disabled={selectedStudents.length === 0 || !smsMessage.trim()}
+            onClick={handleSendMessage}
             className="
               !mt-3
               !h-11
@@ -1083,7 +771,6 @@ const Attendance = () => {
           >
             Send Message
           </Button>
-
 
           {/* =========================
               INFO
@@ -1099,18 +786,12 @@ const Attendance = () => {
               text-gray-600
             "
           >
-            ⓘ Attendance is saved directly
-            to each student's profile.
+            ⓘ Attendance is saved directly to each student's profile.
           </div>
-
         </div>
-
       </div>
-
     </div>
-
   );
 };
-
 
 export default Attendance;

@@ -1,9 +1,5 @@
 import {
-  Award,
-  Briefcase,
-  CheckCircle,
-  Clock3,
-  MessageCircle,
+ 
   Plus,
   Trophy,
   ArrowLeft,
@@ -18,6 +14,7 @@ import {
   NotebookText,
   FileText,
   CreditCard,
+  School
 } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
@@ -32,9 +29,11 @@ import { useGetStudentByIdQuery } from "../../redux/services/studentsApiServices
 import StudentProfileSkeleton from "../../components/students/StudentProfileSkeleton";
 import Invoice from "../../components/students/Invoice";
 import StudentAttendance from "../../components/students/StudentAttendance";
-
+import { Modal, Input, InputNumber, message } from "antd";
 const StudentProfile = () => {
   const [activeTab, setActiveTab] = useState("Attendance");
+  const [open, setOpen] = useState(false);
+const [paymentAmount, setPaymentAmount] = useState("");
   const { id } = useParams();
   const { data, isLoading } = useGetStudentByIdQuery(id);
   const student = data?.data || {};
@@ -402,7 +401,7 @@ const StudentProfile = () => {
 
         <div className="flex items-center gap-3">
 
-          <UserRound
+          <School
             size={24}
             className="text-[#41405F]"
           />
@@ -415,7 +414,7 @@ const StudentProfile = () => {
                 text-text-secondary
               "
             >
-              Guardian
+              School
             </p>
 
             <p
@@ -426,7 +425,7 @@ const StudentProfile = () => {
                 text-text-primary
               "
             >
-              {student?.guardian || "-"}
+              {student?.school || "-"}
             </p>
 
           </div>
@@ -966,7 +965,7 @@ const StudentProfile = () => {
               {/* Invoice*/}
 
               {activeTab === "Invoice" && (
-                <Invoice/>
+                <Invoice invoice={student?.invoices}/>
               )}
 
               {/* Notes */}
@@ -1035,6 +1034,89 @@ const StudentProfile = () => {
 
         {/* RIGHT CARD */}
       </div>
+
+<Modal
+  title="Make Payment"
+  open={open}
+  onCancel={() => {
+    setOpen(false);
+    setPaymentAmount("");
+  }}
+  footer={null}
+  centered
+>
+  <div className="space-y-5">
+
+    <div>
+      <p className="text-sm text-gray-500">
+        Student
+      </p>
+
+      <h3 className="font-semibold text-lg">
+        {student?.name}
+      </h3>
+    </div>
+
+
+    <div>
+      <label className="block mb-2 font-medium">
+        Payment Amount
+      </label>
+
+      <Input
+        size="large"
+        type="number"
+        placeholder="Enter amount"
+        value={paymentAmount}
+        onChange={(e)=>setPaymentAmount(e.target.value)}
+        prefix="৳"
+      />
+    </div>
+
+
+    <button
+      onClick={() => {
+
+        if(!paymentAmount){
+          message.error("Please enter amount");
+          return;
+        }
+
+
+        const paymentData = {
+          studentId: student._id,
+          amount: Number(paymentAmount),
+        };
+
+
+        console.log(paymentData);
+
+
+        message.success("Payment added successfully");
+
+
+        setOpen(false);
+        setPaymentAmount("");
+
+      }}
+      className="
+      w-full
+      h-11
+      rounded-xl
+      bg-purple-600
+      text-white
+      font-semibold
+      hover:bg-purple-700
+      "
+    >
+      Confirm Payment
+    </button>
+
+
+  </div>
+</Modal>
+
+
     </div>
   );
 };

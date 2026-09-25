@@ -118,16 +118,18 @@ const Students = () => {
   const handleSubmitStudent = async () => {
     try {
       const values = await form.validateFields();
-
       const studentData = {
         name: values.name,
         className: values.className,
+
+        batch: "1",
+        time: values.time,
+
+        school: values.school,
+        phone: values.phone,
+
         monthlyFee: Number(values.monthlyFee),
         admissionFee: Number(values.admissionFee),
-
-        section: values.section,
-        guardian: values.guardian,
-        phone: values.phone,
       };
 
       if (editingStudent) {
@@ -136,7 +138,7 @@ const Students = () => {
           data: studentData,
         }).unwrap();
 
-        message.success("Student added successfully!");
+        message.success("Student updated successfully!");
       } else {
         await createStudent(studentData).unwrap();
 
@@ -150,7 +152,6 @@ const Students = () => {
       message.error(error?.data?.message || "Something went wrong");
     }
   };
-
   // ==========================================
   // Delete Student
   // ==========================================
@@ -299,9 +300,9 @@ const Students = () => {
     },
 
     {
-      title: "Guardian",
-      dataIndex: "guardian",
-      key: "guardian",
+      title: "School",
+      dataIndex: "school",
+      key: "school",
     },
 
     {
@@ -690,16 +691,24 @@ const Students = () => {
                 placeholder="Select time"
                 options={[
                   {
-                    value: "Morning",
-                    label: "Morning",
+                    value: "A1",
+                    label: "A1",
                   },
                   {
-                    value: "Afternoon",
-                    label: "Afternoon",
+                    value: "A2",
+                    label: "A2",
                   },
                   {
-                    value: "Evening",
-                    label: "Evening",
+                    value: "A3",
+                    label: "A3",
+                  },
+                  {
+                    value: "A4",
+                    label: "A4",
+                  },
+                  {
+                    value: "A5",
+                    label: "A5",
                   },
                 ]}
               />

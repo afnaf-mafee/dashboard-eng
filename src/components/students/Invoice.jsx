@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 const Invoice = ({ invoice = [] }) => {
+
   // Newest payment first
   const invoices = [...invoice].sort(
     (a, b) => new Date(b.paidAt) - new Date(a.paidAt)
