@@ -10,6 +10,7 @@ import {
   X,
   ChartNoAxesCombined,
   Blocks,
+  Wallet,
 } from "lucide-react";
 
 const DashboardLayout = () => {
@@ -25,6 +26,11 @@ const DashboardLayout = () => {
       name: "Attendance",
       path: "attendance",
       icon: ClipboardCheck,
+    },
+    {
+      name: "Fee History",
+      path: "/fee-history",
+      icon: Wallet,
     },
     {
       name: "Fee Collection",
@@ -199,8 +205,6 @@ const DashboardLayout = () => {
             Main
         ========================= */}
         <main className="min-w-0 flex-1 pt-[72px] lg:pt-0 lg:pl-6">
-        
-
           {/* Page */}
           <div className=" !font-urbanest min-h-[calc(100vh-48px)] rounded-[28px] border border-border bg-surface-soft p-4 shadow-[0_20px_60px_rgba(91,33,182,0.08)] backdrop-blur-2xl sm:p-6 lg:p-8">
             <Outlet />

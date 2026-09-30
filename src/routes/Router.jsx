@@ -8,7 +8,7 @@ import FeeCollection from "../pages/FeeCollection/FeeCollection";
 import ResultManagement from "../pages/ResultManagement/ResultManagement";
 import Batch from "../pages/Batch/Batch";
 import Login from "../pages/Login/Login";
-
+import FeeHistory from "../pages/FeeHistory/FeeHistory";
 
 export const router = createBrowserRouter([
   {
@@ -25,19 +25,27 @@ export const router = createBrowserRouter([
       {
         path: "/students-profile/:id",
         element: <StudentProfile />,
-      }, {
+      },
+      {
+        path: "/fee-history",
+        element: <FeeHistory />,
+      },
+      {
         path: "/fee-collection",
-        element: <FeeCollection/>,
-      }, {
+        element: <FeeCollection />,
+      },
+      {
         path: "/result",
-        element: <ResultManagement/>,
-      },{
+        element: <ResultManagement />,
+      },
+      {
         path: "/batch",
-        element: <Batch/>,
+        element: <Batch />,
       },
     ],
-  },{
-    path:"/login",
-    element: <Login/>
-  }
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
 ]);

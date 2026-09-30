@@ -1,5 +1,4 @@
 import {
- 
   Plus,
   Trophy,
   ArrowLeft,
@@ -7,14 +6,14 @@ import {
   UserRound,
   WalletCards,
   Pencil,
-   Copy ,
-   Phone ,
-   BarChart3 ,
+  Copy,
+  Phone,
+  BarChart3,
   UsersRound,
   NotebookText,
   FileText,
   CreditCard,
-  School
+  School,
 } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
@@ -29,15 +28,15 @@ import { useGetStudentByIdQuery } from "../../redux/services/studentsApiServices
 import StudentProfileSkeleton from "../../components/students/StudentProfileSkeleton";
 import Invoice from "../../components/students/Invoice";
 import StudentAttendance from "../../components/students/StudentAttendance";
-import { Modal, Input, InputNumber, message } from "antd";
+import { Modal, Input, InputNumber, message, Select } from "antd";
 const StudentProfile = () => {
   const [activeTab, setActiveTab] = useState("Attendance");
+   
   const [open, setOpen] = useState(false);
-const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
   const { id } = useParams();
   const { data, isLoading } = useGetStudentByIdQuery(id);
   const student = data?.data || {};
-
 
   if (isLoading) {
     return <StudentProfileSkeleton />;
@@ -49,18 +48,17 @@ const [paymentAmount, setPaymentAmount] = useState("");
       <div className="">
         {/* LEFT CONTENT */}
         <div className="xl:col-span-2 space-y-6">
-         {/* =========================================
+          {/* =========================================
     STUDENT PROFILE TOP HEADER
 ========================================= */}
 
-<div className="space-y-6">
-
-  {/* =========================================
+          <div className="space-y-6">
+            {/* =========================================
       PAGE TITLE + ACTION BUTTONS
   ========================================= */}
 
-  <div
-    className="
+            <div
+              className="
       flex
       flex-col
       sm:flex-row
@@ -69,14 +67,12 @@ const [paymentAmount, setPaymentAmount] = useState("");
       gap-4
       px-1
     "
-  >
+            >
+              {/* LEFT */}
 
-    {/* LEFT */}
-
-    <div>
-
-      <h1
-        className="
+              <div>
+                <h1
+                  className="
           text-3xl
           md:text-[32px]
           leading-tight
@@ -84,39 +80,36 @@ const [paymentAmount, setPaymentAmount] = useState("");
           tracking-tight
           text-text-primary
         "
-      >
-        Student Profile
-      </h1>
+                >
+                  Student Profile
+                </h1>
 
-      <p
-        className="
+                <p
+                  className="
           mt-1
           text-sm
           md:text-[15px]
           text-text-secondary
         "
-      >
-        View student details, track attendance and manage information
-      </p>
+                >
+                  View student details, track attendance and manage information
+                </p>
+              </div>
 
-    </div>
+              {/* RIGHT BUTTONS */}
 
-
-    {/* RIGHT BUTTONS */}
-
-    <div
-      className="
+              <div
+                className="
         flex
         items-center
         gap-3
       "
-    >
+              >
+                {/* Back Button */}
 
-      {/* Back Button */}
-
-      <button
-        onClick={() => navigate(-1)}
-        className="
+                <button
+                  onClick={() => navigate(-1)}
+                  className="
           group
           flex
           items-center
@@ -139,28 +132,23 @@ const [paymentAmount, setPaymentAmount] = useState("");
           hover:shadow-md
           cursor-pointer
         "
-      >
-
-        <ArrowLeft
-          size={19}
-          className="
+                >
+                  <ArrowLeft
+                    size={19}
+                    className="
             transition-transform
             duration-300
             group-hover:-translate-x-1
           "
-        />
+                  />
 
-        <span className="hidden sm:block">
-          Back to Students
-        </span>
+                  <span className="hidden sm:block">Back to Students</span>
+                </button>
 
-      </button>
+                {/* Edit Profile */}
 
-
-      {/* Edit Profile */}
-
-      <button
-        className="
+                <button
+                  className="
           group
           relative
           flex
@@ -185,10 +173,9 @@ const [paymentAmount, setPaymentAmount] = useState("");
           cursor-pointer
           overflow-hidden
         "
-      >
-
-        <span
-          className="
+                >
+                  <span
+                    className="
             absolute
             inset-0
             bg-white/10
@@ -197,30 +184,21 @@ const [paymentAmount, setPaymentAmount] = useState("");
             transition-transform
             duration-700
           "
-        />
+                  />
 
-        <Pencil
-          size={18}
-          className="relative z-10"
-        />
+                  <Pencil size={18} className="relative z-10" />
 
-        <span className="relative z-10">
-          Edit Profile
-        </span>
+                  <span className="relative z-10">Edit Profile</span>
+                </button>
+              </div>
+            </div>
 
-      </button>
-
-    </div>
-
-  </div>
-
-
-  {/* =========================================
+            {/* =========================================
       PROFILE INFORMATION CARD
   ========================================= */}
 
-  <div
-    className="
+            <div
+              className="
       rounded-[24px]
       border
       border-border
@@ -230,78 +208,65 @@ const [paymentAmount, setPaymentAmount] = useState("");
       py-6
       shadow-[0_20px_60px_rgba(91,33,182,0.08)]
     "
-  >
-
-    <div
-      className="
+            >
+              <div
+                className="
         flex
         flex-col
         xl:flex-row
         xl:items-center
         gap-7
       "
-    >
-
-      {/* =====================================
+              >
+                {/* =====================================
           STUDENT BASIC INFO
       ===================================== */}
 
-      <div
-        className="
+                <div
+                  className="
           flex
           items-center
           gap-5
           flex-1
           min-w-0
         "
-      >
+                >
+                  {/* Avatar */}
 
-        {/* Avatar */}
+                  <div className="shrink-0">
+                    <StudentProfileImage id={student?.studentId} />
+                  </div>
 
-        <div className="shrink-0">
+                  {/* Name + Details */}
 
-          <StudentProfileImage
-            id={student?.studentId}
-          />
-
-        </div>
-
-
-        {/* Name + Details */}
-
-        <div className="min-w-0">
-
-          <h2
-            className="
+                  <div className="min-w-0">
+                    <h2
+                      className="
               text-2xl
               md:text-[27px]
               font-bold
               text-text-primary
               truncate
             "
-          >
-            {student?.name || "Student"}
-          </h2>
+                    >
+                      {student?.name || "Student"}
+                    </h2>
 
+                    {/* Tags */}
 
-
-
-          {/* Tags */}
-
-          <div
-            className="
+                    <div
+                      className="
               mt-3
               flex
               flex-wrap
               items-center
               gap-2
             "
-          >
+                    >
+                      {/* Class */}
 
-            {/* Class */}
-
-            <span
-              className="
+                      <span
+                        className="
                 rounded-lg
                 bg-purple-100
                 px-3
@@ -310,15 +275,14 @@ const [paymentAmount, setPaymentAmount] = useState("");
                 font-semibold
                 text-purple-700
               "
-            >
-              Class: {student?.className || "-"}
-            </span>
+                      >
+                        Class: {student?.className || "-"}
+                      </span>
 
+                      {/* Section */}
 
-            {/* Section */}
-
-            <span
-              className="
+                      <span
+                        className="
                 rounded-lg
                 bg-gray-100
                 px-3
@@ -327,15 +291,14 @@ const [paymentAmount, setPaymentAmount] = useState("");
                 font-semibold
                 text-gray-600
               "
-            >
-              Batch: {student?.section || "-"}
-            </span>
+                      >
+                        Batch: {student?.section || "-"}
+                      </span>
 
+                      {/* Status */}
 
-            {/* Status */}
-
-            <span
-              className="
+                      <span
+                        className="
                 flex
                 items-center
                 gap-1.5
@@ -347,180 +310,144 @@ const [paymentAmount, setPaymentAmount] = useState("");
                 font-semibold
                 text-green-600
               "
-            >
-
-              <span
-                className="
+                      >
+                        <span
+                          className="
                   h-2
                   w-2
                   rounded-full
                   bg-green-500
                 "
-              />
+                        />
+                        Active
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-              Active
-
-            </span>
-        
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      {/* =====================================
+                {/* =====================================
           DIVIDER
       ===================================== */}
 
-      <div
-        className="
+                <div
+                  className="
           hidden
           xl:block
           w-px
           h-24
           bg-purple-200/70
         "
-      />
+                />
 
-
-      {/* =====================================
+                {/* =====================================
           GUARDIAN INFORMATION
       ===================================== */}
 
-      <div
-        className="
+                <div
+                  className="
           xl:w-[230px]
           shrink-0
           space-y-4
         "
-      >
+                >
+                  {/* Guardian */}
 
-        {/* Guardian */}
+                  <div className="flex items-center gap-3">
+                    <School size={24} className="text-[#41405F]" />
 
-        <div className="flex items-center gap-3">
-
-          <School
-            size={24}
-            className="text-[#41405F]"
-          />
-
-          <div>
-
-            <p
-              className="
+                    <div>
+                      <p
+                        className="
                 text-xs
                 text-text-secondary
               "
-            >
-              School
-            </p>
+                      >
+                        School
+                      </p>
 
-            <p
-              className="
+                      <p
+                        className="
                 mt-0.5
                 text-sm
                 font-semibold
                 text-text-primary
               "
-            >
-              {student?.school || "-"}
-            </p>
+                      >
+                        {student?.school || "-"}
+                      </p>
+                    </div>
+                  </div>
 
-          </div>
+                  {/* Phone */}
 
-        </div>
+                  <div className="flex items-center gap-3">
+                    <Phone size={23} className="text-[#41405F]" />
 
-
-        {/* Phone */}
-
-        <div className="flex items-center gap-3">
-
-          <Phone
-            size={23}
-            className="text-[#41405F]"
-          />
-
-          <div>
-
-            <p
-              className="
+                    <div>
+                      <p
+                        className="
                 text-xs
                 text-text-secondary
               "
-            >
-              Phone
-            </p>
+                      >
+                        Phone
+                      </p>
 
-            <div
-              className="
+                      <div
+                        className="
                 flex
                 items-center
                 gap-2
               "
-            >
-
-              <p
-                className="
+                      >
+                        <p
+                          className="
                   text-sm
                   font-semibold
                   text-text-primary
                 "
-              >
-                {student?.phone || "-"}
-              </p>
+                        >
+                          {student?.phone || "-"}
+                        </p>
 
-              <button
-                onClick={() => {
-
-                  navigator.clipboard.writeText(
-                    student?.phone || ""
-                  );
-
-                }}
-                className="
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(student?.phone || "");
+                          }}
+                          className="
                   text-text-secondary
                   hover:text-brand-secondary
                   cursor-pointer
                 "
-                title="Copy Phone"
-              >
+                          title="Copy Phone"
+                        >
+                          <Copy size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                <Copy size={15} />
-
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      {/* =====================================
+                {/* =====================================
           DIVIDER
       ===================================== */}
 
-      <div
-        className="
+                <div
+                  className="
           hidden
           xl:block
           w-px
           h-24
           bg-purple-200/70
         "
-      />
+                />
 
-
-      {/* =====================================
+                {/* =====================================
           MONTHLY FEE
       ===================================== */}
 
-      <div
-        className="
+                <div
+                  className="
           flex
           items-center
           gap-3
@@ -530,10 +457,9 @@ const [paymentAmount, setPaymentAmount] = useState("");
           py-4
           xl:min-w-[155px]
         "
-      >
-
-        <div
-          className="
+                >
+                  <div
+                    className="
             flex
             h-11
             w-11
@@ -544,50 +470,40 @@ const [paymentAmount, setPaymentAmount] = useState("");
             bg-purple-100
             text-purple-600
           "
-        >
+                  >
+                    <WalletCards size={24} />
+                  </div>
 
-          <WalletCards size={24} />
-
-        </div>
-
-
-        <div>
-
-          <p
-            className="
+                  <div>
+                    <p
+                      className="
               text-xs
               text-text-secondary
             "
-          >
-            Monthly Fee
-          </p>
+                    >
+                      Monthly Fee
+                    </p>
 
-          <p
-            className="
+                    <p
+                      className="
               mt-1
               text-xl
               font-bold
               text-purple-600
             "
-          >
-            ৳ {Number(
-              student?.monthlyFee || 0
-            ).toLocaleString()}
-          </p>
+                    >
+                      ৳ {Number(student?.monthlyFee || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  {/* Pay Now */}
+                </div>
 
-        </div>
- {/* Pay Now */}
-
-
-      </div>
-
-
-      {/* =====================================
+                {/* =====================================
           ATTENDANCE RATE
       ===================================== */}
 
-      <div
-        className="
+                <div
+                  className="
           flex
           items-center
           gap-3
@@ -597,10 +513,9 @@ const [paymentAmount, setPaymentAmount] = useState("");
           py-4
           xl:min-w-[175px]
         "
-      >
-
-        <div
-          className="
+                >
+                  <div
+                    className="
             flex
             h-11
             w-11
@@ -611,74 +526,54 @@ const [paymentAmount, setPaymentAmount] = useState("");
             bg-purple-100
             text-purple-600
           "
-        >
+                  >
+                    <BarChart3 size={24} />
+                  </div>
 
-          <BarChart3 size={24} />
-
-        </div>
-
-
-        <div>
-
-          <p
-            className="
+                  <div>
+                    <p
+                      className="
               text-xs
               text-text-secondary
             "
-          >
-            Attendance Rate
-          </p>
+                    >
+                      Attendance Rate
+                    </p>
 
-          <p
-            className="
+                    <p
+                      className="
               mt-1
               text-xl
               font-bold
               text-purple-600
             "
-          >
-            {(() => {
+                    >
+                      {(() => {
+                        const records = student?.attendance || [];
 
-              const records =
-                student?.attendance || [];
+                        const present = records.filter(
+                          (item) => item.status === "Present",
+                        ).length;
 
-              const present =
-                records.filter(
-                  (item) =>
-                    item.status ===
-                    "Present"
-                ).length;
+                        const absent = records.filter(
+                          (item) => item.status === "Absent",
+                        ).length;
 
-              const absent =
-                records.filter(
-                  (item) =>
-                    item.status ===
-                    "Absent"
-                ).length;
+                        const total = present + absent;
 
-              const total =
-                present + absent;
+                        return total > 0
+                          ? `${Math.round((present / total) * 100)}%`
+                          : "0%";
+                      })()}
+                    </p>
+                  </div>
+                </div>
 
-              return total > 0
-                ? `${Math.round(
-                    (present / total) * 100
-                  )}%`
-                : "0%";
-
-            })()}
-
-          </p>
-
-        </div>
-
-      </div>
-
-
-      {/* =====================================
+                {/* =====================================
           STATUS
       ===================================== */}
 
-      {/* <div
+                {/* <div
         className="
           flex
           items-center
@@ -741,26 +636,24 @@ const [paymentAmount, setPaymentAmount] = useState("");
         </div>
 
       </div> */}
-  <button
-    onClick={() => setOpen(true)}
-    className="group flex items-center gap-2 px-4 py-2.5 rounded-xl
+                <button
+                  onClick={() => setOpen(true)}
+                  className="group flex items-center gap-2 px-4 py-2.5 rounded-xl
     bg-gradient-to-r from-violet-600 to-purple-600 cursor-pointer
     text-white font-medium shadow-lg shadow-purple-200
     hover:from-purple-700 hover:to-violet-700
     hover:shadow-purple-300 hover:-translate-y-0.5
     transition-all duration-300"
-  >
-    <CreditCard
-      size={17}
-      className="group-hover:scale-110 transition-transform"
-    />
-    <span>Pay Now</span>
-  </button>
-    </div>
-
-  </div>
-
-</div>
+                >
+                  <CreditCard
+                    size={17}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                  <span>Pay Now</span>
+                </button>
+              </div>
+            </div>
+          </div>
           {/* Tabs */}
           <div
             className="
@@ -787,7 +680,7 @@ const [paymentAmount, setPaymentAmount] = useState("");
                   name: "Attendance",
                   icon: <CalendarCheck size={19} />,
                 },
-               
+
                 {
                   name: "Fee Details",
                   icon: <WalletCards size={19} />,
@@ -796,7 +689,7 @@ const [paymentAmount, setPaymentAmount] = useState("");
                   name: "Invoice",
                   icon: <UsersRound size={19} />,
                 },
-                 {
+                {
                   name: "Personal Info",
                   icon: <UserRound size={19} />,
                 },
@@ -965,7 +858,7 @@ const [paymentAmount, setPaymentAmount] = useState("");
               {/* Invoice*/}
 
               {activeTab === "Invoice" && (
-                <Invoice invoice={student?.invoices}/>
+                <Invoice invoice={student?.invoices} />
               )}
 
               {/* Notes */}
@@ -1035,71 +928,95 @@ const [paymentAmount, setPaymentAmount] = useState("");
         {/* RIGHT CARD */}
       </div>
 
-<Modal
-  title="Make Payment"
-  open={open}
-  onCancel={() => {
-    setOpen(false);
-    setPaymentAmount("");
-  }}
-  footer={null}
-  centered
->
-  <div className="space-y-5">
+      <Modal
+        title="Make Payment"
+        open={open}
+        onCancel={() => {
+          setOpen(false);
+          setPaymentAmount("");
+        }}
+        footer={null}
+        centered
+      >
+        <div className="space-y-5">
+          <div>
+            <h3 className="font-semibold text-lg">{student?.name}</h3>
+          </div>
 
-    <div>
-      <p className="text-sm text-gray-500">
-        Student
-      </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Payment Amount */}
+            <div>
+              <label className="block mb-2 font-medium">Payment Amount</label>
 
-      <h3 className="font-semibold text-lg">
-        {student?.name}
-      </h3>
-    </div>
+              <Input
+                size="large"
+                type="number"
+                placeholder="Enter amount"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                prefix="৳"
+              />
+            </div>
 
+            {/* Fee Type */}
+            <div>
+              <label className="block mb-2 font-medium">Fee Type</label>
 
-    <div>
-      <label className="block mb-2 font-medium">
-        Payment Amount
-      </label>
+              <Select
+                size="large"
+                className="w-full"
+                // value={payment.feeType}
+                onChange={(v) => updatePayment("feeType", v)}
+                options={[
+                  {
+                    label: "Admission Fee",
+                    value: "Admission Fee",
+                  },
+                  {
+                    label: "Monthly Fee",
+                    value: "Monthly Fee",
+                  },
+                  {
+                    label: "Exam Fee",
+                    value: "Exam Fee",
+                  },
+                  {
+                    label: "Hand Note Fee",
+                    value: "Hand Note Fee",
+                  },
+                  {
+                    label: "Scholarship Fee",
+                    value: "Scholarship Fee",
+                  },
+                  {
+                    label: "Others",
+                    value: "Others",
+                  },
+                ]}
+              />
+            </div>
+          </div>
 
-      <Input
-        size="large"
-        type="number"
-        placeholder="Enter amount"
-        value={paymentAmount}
-        onChange={(e)=>setPaymentAmount(e.target.value)}
-        prefix="৳"
-      />
-    </div>
+          <button
+            onClick={() => {
+              if (!paymentAmount) {
+                message.error("Please enter amount");
+                return;
+              }
 
+              const paymentData = {
+                studentId: student._id,
+                amount: Number(paymentAmount),
+              };
 
-    <button
-      onClick={() => {
+              console.log(paymentData);
 
-        if(!paymentAmount){
-          message.error("Please enter amount");
-          return;
-        }
+              message.success("Payment added successfully");
 
-
-        const paymentData = {
-          studentId: student._id,
-          amount: Number(paymentAmount),
-        };
-
-
-        console.log(paymentData);
-
-
-        message.success("Payment added successfully");
-
-
-        setOpen(false);
-        setPaymentAmount("");
-
-      }}
-      className="
+              setOpen(false);
+              setPaymentAmount("");
+            }}
+            className="
       w-full
       h-11
       rounded-xl
@@ -1108,15 +1025,11 @@ const [paymentAmount, setPaymentAmount] = useState("");
       font-semibold
       hover:bg-purple-700
       "
-    >
-      Confirm Payment
-    </button>
-
-
-  </div>
-</Modal>
-
-
+          >
+            Confirm Payment
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
