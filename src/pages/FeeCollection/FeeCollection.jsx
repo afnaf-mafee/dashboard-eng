@@ -25,16 +25,19 @@ import {
   HiOutlineCheckCircle,
 } from "react-icons/hi2";
 import FeeSummaryCards from "../../components/students/FeeSummaryCards";
-import { useGetStudentsQuery,useAddFeePaymentMutation,} from "../../redux/services/studentsApiServices/studentApiServices";
+import {
+  useGetStudentsQuery,
+  useAddFeePaymentMutation,
+} from "../../redux/services/studentsApiServices/studentApiServices";
 import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices";
 const FeeCollection = () => {
   const [open, setOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState("all");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const { data: studentData, isLoading } = useGetStudentsQuery();
-    const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
+  const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
   const [addFeePayment, { isLoading: isPaymentLoading }] =
-  useAddFeePaymentMutation();
+    useAddFeePaymentMutation();
   const students = studentData?.data;
   const handlePay = (student) => {
     setSelectedStudent(student);
@@ -42,33 +45,33 @@ const FeeCollection = () => {
     setOpen(true);
   };
   const [form] = Form.useForm();
-const handleConfirmPayment = async () => {
-  try {
-    const values = await form.validateFields();
+  const handleConfirmPayment = async () => {
+    try {
+      const values = await form.validateFields();
 
-    const paymentData = {
-      amount: Number(values.amount),
-      month: values.month,
-    };
+      const paymentData = {
+        amount: Number(values.amount),
+        month: values.month,
+      };
 
-    await addFeePayment({
-      id: selectedStudent?._id,
-      paymentData,
-    }).unwrap();
+      await addFeePayment({
+        id: selectedStudent?._id,
+        paymentData,
+      }).unwrap();
 
-    message.success("Payment completed successfully!");
+      message.success("Payment completed successfully!");
 
-    form.resetFields();
-    setOpen(false);
-  } catch (error) {
-    console.log("Payment Failed:", error);
+      form.resetFields();
+      setOpen(false);
+    } catch (error) {
+      console.log("Payment Failed:", error);
 
-    message.error(
-      error?.data?.message || "Payment failed. Please try again."
-    );
-  }
-};
- 
+      message.error(
+        error?.data?.message || "Payment failed. Please try again.",
+      );
+    }
+  };
+
   const columns = [
     {
       title: "#",
@@ -216,7 +219,7 @@ text-red-600"
         <button
           onClick={() => handlePay(record)}
           className="
-
+cursor-pointer
 flex
 items-center
 gap-2
@@ -332,7 +335,6 @@ max-w-md
 !rounded-xl"
           />
 
-          
           <Select
             size="large"
             value={selectedClass}
@@ -386,7 +388,6 @@ max-w-md
             ]}
           />
 
-        
           <Button
             icon={<DownloadOutlined />}
             className="
@@ -610,42 +611,40 @@ text-gray-500"
               />
             </Form.Item>
 
-       
-
-
             {/* Buttons */}
 
             <div className="mt-6 flex gap-3">
-             <Button
-  block
-  disabled={isPaymentLoading}
-  onClick={() => {
-    form.resetFields();
-    setOpen(false);
-  }}
-  className="!h-12 !rounded-xl"
->
-  Cancel
-</Button>
+              <Button
+                block
+                disabled={isPaymentLoading}
+                onClick={() => {
+                  form.resetFields();
+                  setOpen(false);
+                }}
+                className="!h-12 !rounded-xl !font-semibold"
+              >
+                Cancel
+              </Button>
 
-<Button
-  block
-  loading={isPaymentLoading}
-  disabled={isPaymentLoading}
-  onClick={handleConfirmPayment}
-  className="
+              <Button
+                block
+                loading={isPaymentLoading}
+                disabled={isPaymentLoading}
+                onClick={handleConfirmPayment}
+                className="
     !h-12
     !rounded-xl
     !border-0
     !bg-gradient-to-r
     !from-brand-primary
     !to-brand-secondary
-    font-semibold
+    
     !text-white
+    !font-bold
   "
->
-  Confirm Payment
-</Button>
+              >
+                Confirm Payment
+              </Button>
             </div>
           </Form>
         </div>

@@ -1,4 +1,5 @@
 import { CheckCircle, Clock3, Download, Eye, Send, Users } from "lucide-react";
+
 import {
   Table,
   Tag,
@@ -8,67 +9,30 @@ import {
   Modal,
   Form,
   InputNumber,
+  message,
 } from "antd";
-
 import { SearchOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices";
+import {
+  useGetStudentsQuery,
+  useAddResultMutation,
+  useSendResultsToAllMutation,
+} from "../../redux/services/studentsApiServices/studentApiServices";
+import { FiCopy } from "react-icons/fi";
 const ResultManagement = () => {
   const [openModal, setOpenModal] = useState(false);
-     const [selectedClass, setSelectedClass] = useState("all");
+  const [selectedClass, setSelectedClass] = useState("all");
   const [selectedStudent, setSelectedStudent] = useState(null);
- const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
 
+  const { data: studentData, isLoading } = useGetStudentsQuery();
+  const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
+  const [addResult, { isLoading: resultLoading }] = useAddResultMutation();
+  const [sendResultsToAll, { isLoading: sendLoading }] =
+    useSendResultsToAllMutation();
   const [form] = Form.useForm();
-  const handleCloseModal = () => {
-    form.resetFields();
 
-    setEditingStudent(null);
-
-    setOpenModal(false);
-  };
-  const data = [
-    {
-      key: 1,
-      name: "Sakib Ahmed",
-      id: "429535",
-      class: "One",
-      exam: "Half Yearly",
-      marks: "450 / 500",
-      grade: "A+",
-      status: "Completed",
-    },
-    {
-      key: 2,
-      name: "Sharif Hasan",
-      id: "212580",
-      class: "One",
-      exam: "Half Yearly",
-      marks: "390 / 500",
-      grade: "A",
-      status: "Completed",
-    },
-    {
-      key: 3,
-      name: "Afnat Rahman",
-      id: "759546",
-      class: "Two",
-      exam: "Half Yearly",
-      marks: "285 / 500",
-      grade: "B",
-      status: "Completed",
-    },
-    {
-      key: 4,
-      name: "Daud Khan",
-      id: "697130",
-      class: "Two",
-      exam: "Half Yearly",
-      marks: "-",
-      grade: "-",
-      status: "Pending",
-    },
-  ];
+  const data = studentData?.data || [];
 
   const openResultModal = (record) => {
     setSelectedStudent(record);
@@ -82,120 +46,181 @@ const ResultManagement = () => {
       exam: record.exam,
     });
   };
+  const handleSubmitResult = async () => {
+    try {
+      const values = await form.validateFields();
+
+      await addResult({
+        id: selectedStudent._id,
+
+        resultData: {
+          examType: values.examType,
+          examNumber: Number(values.examNumber),
+          obtainedMarks: Number(values.obtainedMarks),
+        },
+      }).unwrap();
+
+      message.success("Result added successfully");
+
+      form.resetFields();
+
+      setOpenModal(false);
+    } catch (error) {
+      console.log(error);
+
+      message.error(error?.data?.message || "Failed to add result");
+    }
+  };
+  const handleCloseModal = () => {
+    form.resetFields();
+
+    setSelectedStudent(null);
+
+    setOpenModal(false);
+  };
+
+  const handleSendAllResults = () => {
+    Modal.confirm({
+      title: "Are you sure?",
+
+      content: "All pending results will be sent to students/guardians.",
+
+      okText: "Yes, Send",
+
+      cancelText: "Cancel",
+
+      async onOk() {
+        try {
+          await sendResultsToAll().unwrap();
+
+          message.success("All results sent successfully");
+        } catch (error) {
+          message.error(error?.data?.message || "Failed to send results");
+        }
+      },
+    });
+  };
 
   const columns = [
     {
       title: "#",
-      dataIndex: "key",
+      dataIndex: "",
       width: 60,
     },
-
     {
       title: "Name",
       dataIndex: "name",
+      key: "name",
 
-      render: (name) => (
+      render: (_, record) => (
         <div className="flex items-center gap-3">
-          <div
-            className="
- w-10
- h-10
- rounded-full
- bg-gradient-to-r
- from-brand-primary
- to-brand-accent
- flex
- items-center
- justify-center
- text-white
- font-bold
- "
-          >
-            {name.charAt(0)}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary text-sm font-bold text-white">
+            {record.name.charAt(0)}
           </div>
 
-          <span className="font-semibold">{name}</span>
+          <div>
+            <p className="font-urbanist font-semibold text-text-primary">
+              {record.name}
+            </p>
+
+            <p className="text-xs text-text-muted">{record.id}</p>
+          </div>
         </div>
       ),
     },
 
     {
       title: "Student ID",
-      dataIndex: "id",
-    },
+      dataIndex: "studentId",
+      key: "studentId",
 
-    {
-      title: "Class",
-      dataIndex: "class",
+      render: (studentId) => (
+        <div className="flex items-center gap-2">
+          <div
+            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition hover:bg-gray-100"
+            onClick={() => {
+              navigator.clipboard.writeText(String(studentId));
+              message.success("Student ID copied!");
+            }}
+          >
+            <span className="font-semibold">{studentId}</span>
 
-      render: (value) => (
-        <span
-          className="
- bg-purple-soft
- text-brand-secondary
- px-3
- py-1
- rounded-lg
- "
-        >
-          {value}
-        </span>
+            <FiCopy size={15} className="text-gray-400 hover:text-purple-600" />
+          </div>
+        </div>
       ),
     },
 
     {
-      title: "Exam",
-      dataIndex: "exam",
-    },
-
-    {
-      title: "Marks",
-      dataIndex: "marks",
-
-      render: (value) => <span className="font-semibold">{value}</span>,
-    },
-
-    {
-      title: "Grade",
-      dataIndex: "grade",
+      title: "Class",
+      dataIndex: "className",
+      key: "className",
 
       render: (value) => (
-        <Tag color="green" className="rounded-full px-3">
+        <Tag
+          style={{
+            border: "none",
+            borderRadius: "8px",
+            padding: "3px 10px",
+            background: "#f3e8ff",
+            color: "#7e22ce",
+            fontWeight: 600,
+          }}
+        >
           {value}
         </Tag>
       ),
     },
 
     {
-      title: "Status",
-      dataIndex: "status",
-
-      render: (value) =>
-        value === "Completed" ? (
-          <Tag color="green">● Completed</Tag>
-        ) : (
-          <Tag color="orange">● Pending</Tag>
-        ),
+      title: "Time",
+      dataIndex: "time",
+      key: "section",
     },
-
     {
-      title: "Action",
-
-      fixed: "right",
-
-      render: (_, record) => (
-        <Button
-          onClick={() => openResultModal(record)}
-          className="
- border-purple-400
- text-brand-secondary
- rounded-xl
- "
-        >
-          {record.status === "Completed" ? "Edit" : "Add"}
-        </Button>
-      ),
+      title: "Batch",
+      dataIndex: "batch",
+      key: "section",
     },
+
+  {
+  title: "Action",
+
+  fixed: "right",
+
+  render: (_, record) => (
+    <Button
+      onClick={() => openResultModal(record)}
+      className="
+      
+        !cursor-pointer
+        !rounded-xl
+        !border
+        !border-white/20
+        !bg-gradient-to-r
+        !from-brand-primary/80
+        !to-brand-secondary/80
+        !px-5
+        !py-1
+        !text-sm
+        !font-semibold
+        !text-white
+        !shadow-lg
+        !shadow-brand-primary/0
+        !backdrop-blur-md
+        !transition-all
+        !duration-300
+        hover:!scale-105
+        hover:!shadow-xl
+        hover:!shadow-brand-secondary/40
+        hover:!brightness-110
+        active:!scale-95
+      "
+    >
+      {record.status === "Completed" ? "Edit" : "Add"}
+    </Button>
+  ),
+},
   ];
 
   return (
@@ -235,18 +260,20 @@ text-text-primary
           <Button icon={<Eye size={18} />} className="rounded-xl h-11">
             Preview
           </Button>
-
           <Button
             icon={<Send size={18} />}
+            loading={sendLoading}
+            disabled={sendLoading}
+            onClick={handleSendAllResults}
             className="
-rounded-xl
-h-11
-text-white
-bg-gradient-to-r
-from-brand-primary
-to-brand-accent
-border-none
-"
+  rounded-xl
+  h-11
+  text-white
+  bg-gradient-to-r
+  from-brand-primary
+  to-brand-accent
+  border-none
+  "
           >
             Send Results To All
           </Button>
@@ -298,7 +325,6 @@ mb-5
             className="h-11 rounded-xl"
           />
 
-          
           <Select
             size="large"
             value={selectedClass}
@@ -351,19 +377,6 @@ mb-5
               },
             ]}
           />
-
-          <Button
-            icon={<Download />}
-            className="
-rounded-xl
-bg-gradient-to-r
-from-brand-primary
-to-brand-accent
-text-white
-"
-          >
-            Export
-          </Button>
         </div>
 
         <Table
@@ -387,7 +400,7 @@ font-urbanest
       <Modal
         open={openModal}
         onCancel={() => setOpenModal(false)}
-      footer={[
+        footer={[
           <Button
             key="cancel"
             onClick={handleCloseModal}
@@ -395,16 +408,15 @@ font-urbanest
           >
             Cancel
           </Button>,
-
           <Button
             key="submit"
             type="primary"
-            // loading={isCreating}
-            // disabled={isCreating}
-            // onClick={handleSubmitStudent}
-            className="!rounded-xl !border-0 !bg-gradient-to-r !from-brand-primary !to-brand-secondary !font-urbanist !font-semibold"
+            loading={resultLoading}
+            disabled={resultLoading}
+            onClick={handleSubmitResult}
+            className="!rounded-xl !border-0 !bg-gradient-to-r !from-brand-primary !to-brand-secondary !font-semibold"
           >
-           Save
+            Save
           </Button>,
         ]}
         width={750}
@@ -437,77 +449,88 @@ mb-6
           </p>
 
           <Form form={form} layout="vertical">
-            <div
-              className="
-grid
-grid-cols-1
-md:grid-cols-2
-gap-4
-"
-            >
-              <Form.Item label="Student Name" name="studentName">
-                <Input disabled />
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item label="Student Name">
+                <Input value={selectedStudent?.name} disabled />
               </Form.Item>
 
-              <Form.Item label="Student ID" name="studentId">
-                <Input disabled />
+              <Form.Item label="Student ID">
+                <Input value={selectedStudent?.studentId} disabled />
               </Form.Item>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Test Type */}
-              <Select
-                size="large"
-                placeholder="Select test"
-                className="w-full"
-                options={[
+
+            <div className="grid grid-cols-3 gap-3">
+              <Form.Item
+                label="Exam Type"
+                name="examType"
+                rules={[
                   {
-                    value: "Item Test",
-                    label: "Item Test",
-                  },
-                  {
-                    value: "Weekly Test",
-                    label: "Weekly Test",
-                  },
-                  {
-                    value: "Monthly Test",
-                    label: "Monthly Test",
-                  },
-                  {
-                    value: "Model Test",
-                    label: "Model Test",
-                  },
-                  {
-                    value: "Grammar Test",
-                    label: "Grammar Test",
-                  },
-                  {
-                    value: "Quiz",
-                    label: "Quiz",
+                    required: true,
+                    message: "Select exam type",
                   },
                 ]}
-              />
+              >
+                <Select
+                  size="large"
+                  placeholder="Select test"
+                  options={[
+                    {
+                      value: "Item Test",
+                      label: "Item Test",
+                    },
+                    {
+                      value: "Weekly Test",
+                      label: "Weekly Test",
+                    },
+                    {
+                      value: "Monthly Test",
+                      label: "Monthly Test",
+                    },
+                    {
+                      value: "Model Test",
+                      label: "Model Test",
+                    },
+                    {
+                      value: "Grammar Test",
+                      label: "Grammar Test",
+                    },
+                    {
+                      value: "Quiz",
+                      label: "Quiz",
+                    },
+                  ]}
+                />
+              </Form.Item>
 
-              {/* Obtained Marks */}
-              <Input
-                size="large"
-                type="number"
-                placeholder="Obtained Marks"
-                min={0}
-                className="w-full"
-              />
-            </div>
+              <Form.Item
+                label="Exam Number"
+                name="examNumber"
+                rules={[
+                  {
+                    required: true,
+                    message: "Enter exam number",
+                  },
+                ]}
+              >
+                <Input size="large" type="number" placeholder="Exam Number" />
+              </Form.Item>
 
-            <div
-              className="
-flex
-justify-end
-gap-3
-mt-6
-"
-            >
-       
-
-           
+              <Form.Item
+                label="Obtained Marks"
+                name="obtainedMarks"
+                rules={[
+                  {
+                    required: true,
+                    message: "Enter obtained marks",
+                  },
+                ]}
+              >
+                <Input
+                  size="large"
+                  type="number"
+                  placeholder="Obtained Marks"
+                />
+              </Form.Item>
             </div>
           </Form>
         </div>

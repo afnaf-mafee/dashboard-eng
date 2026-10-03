@@ -64,6 +64,15 @@ export const studentApiService = baseApi.injectEndpoints({
 
       invalidatesTags: ["Student"],
     }),
+        // MAKE STUDENT ACTIVE
+    makeStudentActive: build.mutation({
+      query: (id) => ({
+        url: `/students/${id}/active`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["Student"],
+    }),
+
     // DELETE STUDENT
     deleteStudent: build.mutation({
       query: (id) => ({
@@ -72,19 +81,46 @@ export const studentApiService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Student"],
     }),
-  bulkMarkAttendance: build.mutation({
+    bulkMarkAttendance: build.mutation({
+      query: (data) => ({
+        url: "/students/bulk-attendance",
+        method: "PATCH",
+        body: data,
+      }),
 
-  query: (data) => ({
-    url: "/students/bulk-attendance",
-    method: "PATCH",
-    body: data,
-  }),
+      invalidatesTags: ["Student"],
+    }),
+    // ADD INVOICE
+    addInvoice: build.mutation({
+      query: (invoiceData) => ({
+        url: "/students/add-invoice",
+        method: "POST",
+        body: invoiceData,
+      }),
+      invalidatesTags: ["Student"],
+    }),
 
-  invalidatesTags:["Student"],
+    // =========================
+    // ADD RESULT
+    // =========================
+    addResult: build.mutation({
+      query: ({ id, resultData }) => ({
+        url: `/students/${id}/result`,
+        method: "POST",
+        body: resultData,
+      }),
+      invalidatesTags: ["Student"],
+    }),
 
-}),
+    sendResultsToAll: build.mutation({
+      query: () => ({
+        url: "/students/send-results",
 
-  
+        method: "POST",
+      }),
+
+      invalidatesTags: ["Student"],
+    }),
   }),
 });
 
@@ -96,6 +132,11 @@ export const {
   useDeleteStudentMutation,
   useAddFeePaymentMutation,
   useMarkAttendanceMutation,
-    useBulkMarkAttendanceMutation,
-
+  useAddInvoiceMutation,
+  useBulkMarkAttendanceMutation,
+  // Result
+  useAddResultMutation,
+  useSendResultsToAllMutation,
+   // Active Status
+  useMakeStudentActiveMutation,
 } = studentApiService;

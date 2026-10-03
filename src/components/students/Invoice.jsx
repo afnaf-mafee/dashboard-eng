@@ -8,10 +8,9 @@ import {
 } from "lucide-react";
 
 const Invoice = ({ invoice = [] }) => {
-
   // Newest payment first
   const invoices = [...invoice].sort(
-    (a, b) => new Date(b.paidAt) - new Date(a.paidAt)
+    (a, b) => new Date(b.paidAt) - new Date(a.paidAt),
   );
 
   // Bangladesh Date
@@ -97,7 +96,13 @@ const Invoice = ({ invoice = [] }) => {
       </div>
 
       {/* Invoice List */}
-      <div className="space-y-4">
+      <div
+        className=" space-y-4
+    max-h-[600px]
+    overflow-y-auto
+    pr-2
+    custom-scrollbar"
+      >
         {invoices.length > 0 ? (
           invoices.map((item, index) => (
             <div
@@ -170,8 +175,34 @@ const Invoice = ({ invoice = [] }) => {
                   gap-4
                 "
               >
-               
-
+                {/* Fee Type */}
+                <div
+                  className="
+    flex
+    items-center
+    gap-2
+  "
+                >
+                  <span
+                    className="
+      inline-flex
+      items-center
+      rounded-xl
+      bg-gradient-to-r
+      from-purple-600
+      to-violet-600
+      px-4
+      py-2
+      text-xs
+      font-bold
+      text-white
+      shadow-lg
+      shadow-purple-200
+    "
+                  >
+                    {item.feeType}
+                  </span>
+                </div>
                 {/* Paid Date */}
                 <div
                   className="
@@ -182,14 +213,9 @@ const Invoice = ({ invoice = [] }) => {
                     text-text-secondary
                   "
                 >
-                  <CalendarDays
-                    size={17}
-                    className="text-brand-secondary"
-                  />
+                  <CalendarDays size={17} className="text-brand-secondary" />
 
-                  <span>
-                    {formatDate(item.paidAt)}
-                  </span>
+                  <span>{formatDate(item.paidAt)}</span>
                 </div>
 
                 {/* Paid Time */}
@@ -202,14 +228,9 @@ const Invoice = ({ invoice = [] }) => {
                     text-text-secondary
                   "
                 >
-                  <Clock3
-                    size={17}
-                    className="text-brand-secondary"
-                  />
+                  <Clock3 size={17} className="text-brand-secondary" />
 
-                  <span>
-                    {formatTime(item.paidAt)}
-                  </span>
+                  <span>{formatTime(item.paidAt)}</span>
                 </div>
 
                 {/* Amount */}
@@ -225,9 +246,7 @@ const Invoice = ({ invoice = [] }) => {
                 >
                   <CreditCard size={17} />
 
-                  <span>
-                    ৳ {item.amount}
-                  </span>
+                  <span>৳ {item.amount}</span>
                 </div>
               </div>
             </div>

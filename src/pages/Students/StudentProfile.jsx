@@ -16,28 +16,61 @@ import {
   School,
 } from "lucide-react";
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { MdOutlineSchool } from "react-icons/md";
-import imgAva from "../../assets/icons/woman.png";
-import CalendarCard from "../../components/students/CalendarCard";
 import MonthlyFeeCard from "../../components/students/MonthlyFeeCard";
-import { IoCall } from "react-icons/io5";
-import { TbCoinTaka } from "react-icons/tb";
 import StudentProfileImage from "../../components/students/StudentProfileImage";
-import { useGetStudentByIdQuery } from "../../redux/services/studentsApiServices/studentApiServices";
+import {
+  useGetStudentByIdQuery,
+  useAddInvoiceMutation,
+  useMakeStudentActiveMutation,
+} from "../../redux/services/studentsApiServices/studentApiServices";
 import StudentProfileSkeleton from "../../components/students/StudentProfileSkeleton";
 import Invoice from "../../components/students/Invoice";
 import StudentAttendance from "../../components/students/StudentAttendance";
 import { Modal, Input, InputNumber, message, Select } from "antd";
+import ResultCard from "../../components/students/ResultCard";
 const StudentProfile = () => {
   const [activeTab, setActiveTab] = useState("Attendance");
-   
   const [open, setOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState("");
+  const [feeType, setFeeType] = useState("Select Type");
   const { id } = useParams();
   const { data, isLoading } = useGetStudentByIdQuery(id);
+  const [addInvoice, { isLoading: invoiceLoading }] = useAddInvoiceMutation();
+  const [makeStudentActive] = useMakeStudentActiveMutation();
   const student = data?.data || {};
 
+  const handlePayment = async () => {
+    if (!paymentAmount) {
+      message.error("Please enter amount");
+      return;
+    }
+
+    try {
+      // Admission Fee দিলে Due student Active হবে
+      if (student?.status === "Due" && feeType === "Admission Fee") {
+        await makeStudentActive(student._id).unwrap();
+      }
+
+      const invoiceData = {
+        studentId: student._id,
+        amount: Number(paymentAmount),
+        feeType: feeType,
+      };
+
+      // Invoice create
+      await addInvoice(invoiceData).unwrap();
+
+      message.success("Payment added successfully");
+
+      setOpen(false);
+      setPaymentAmount("");
+      setFeeType("Monthly Fee");
+    } catch (error) {
+      message.error(error?.data?.message || "Payment failed");
+    }
+  };
   if (isLoading) {
     return <StudentProfileSkeleton />;
   }
@@ -239,7 +272,7 @@ const StudentProfile = () => {
 
                   {/* Name + Details */}
 
-                  <div className="min-w-0">
+                  <div className="min-w-0 ">
                     <h2
                       className="
               text-2xl
@@ -296,30 +329,79 @@ const StudentProfile = () => {
                       </span>
 
                       {/* Status */}
-
                       <span
-                        className="
-                flex
-                items-center
-                gap-1.5
-                rounded-lg
-                bg-green-100
-                px-3
-                py-1.5
-                text-xs
-                font-semibold
-                text-green-600
-              "
+                        className={`
+    flex
+    items-center
+    gap-2
+    rounded-xl
+    border
+    px-3
+    py-1.5
+    text-xs
+    font-bold
+    backdrop-blur-xl
+    transition-all
+    duration-300
+    hover:-translate-y-0.5
+    ${
+      student?.status === "Due"
+        ? `
+          border-red-200/60
+          bg-red-50/60
+          text-red-600
+          shadow-[0_6px_20px_rgba(239,68,68,0.18)]
+        `
+        : `
+          border-green-200/60
+          bg-green-50/60
+          text-green-600
+          shadow-[0_6px_20px_rgba(34,197,94,0.18)]
+        `
+    }
+  `}
                       >
                         <span
                           className="
-                  h-2
-                  w-2
-                  rounded-full
-                  bg-green-500
-                "
-                        />
-                        Active
+      relative
+      flex
+      h-3
+      w-3
+      items-center
+      justify-center
+    "
+                        >
+                          {/* Glow Pulse */}
+                          <span
+                            className={`
+        absolute
+        h-3
+        w-3
+        animate-ping
+        rounded-full
+        opacity-40
+        ${student?.status === "Due" ? "bg-red-500" : "bg-green-500"}
+      `}
+                          />
+
+                          {/* Main Dot */}
+                          <span
+                            className={`
+        relative
+        h-2.5
+        w-2.5
+        rounded-full
+        shadow-lg
+        ${
+          student?.status === "Due"
+            ? "bg-red-500 shadow-red-400/60"
+            : "bg-green-500 shadow-green-400/60"
+        }
+      `}
+                          />
+                        </span>
+
+                        {student?.status === "Due" ? "Inactive" : "Active"}
                       </span>
                     </div>
                   </div>
@@ -346,6 +428,7 @@ const StudentProfile = () => {
                 <div
                   className="
           xl:w-[230px]
+          md:w-full
           shrink-0
           space-y-4
         "
@@ -434,8 +517,9 @@ const StudentProfile = () => {
 
                 <div
                   className="
+              
           hidden
-          xl:block
+         
           w-px
           h-24
           bg-purple-200/70
@@ -501,73 +585,6 @@ const StudentProfile = () => {
                 {/* =====================================
           ATTENDANCE RATE
       ===================================== */}
-
-                <div
-                  className="
-          flex
-          items-center
-          gap-3
-          rounded-2xl
-          bg-purple-50
-          px-5
-          py-4
-          xl:min-w-[175px]
-        "
-                >
-                  <div
-                    className="
-            flex
-            h-11
-            w-11
-            shrink-0
-            items-center
-            justify-center
-            rounded-xl
-            bg-purple-100
-            text-purple-600
-          "
-                  >
-                    <BarChart3 size={24} />
-                  </div>
-
-                  <div>
-                    <p
-                      className="
-              text-xs
-              text-text-secondary
-            "
-                    >
-                      Attendance Rate
-                    </p>
-
-                    <p
-                      className="
-              mt-1
-              text-xl
-              font-bold
-              text-purple-600
-            "
-                    >
-                      {(() => {
-                        const records = student?.attendance || [];
-
-                        const present = records.filter(
-                          (item) => item.status === "Present",
-                        ).length;
-
-                        const absent = records.filter(
-                          (item) => item.status === "Absent",
-                        ).length;
-
-                        const total = present + absent;
-
-                        return total > 0
-                          ? `${Math.round((present / total) * 100)}%`
-                          : "0%";
-                      })()}
-                    </p>
-                  </div>
-                </div>
 
                 {/* =====================================
           STATUS
@@ -685,17 +702,14 @@ const StudentProfile = () => {
                   name: "Fee Details",
                   icon: <WalletCards size={19} />,
                 },
+
+                {
+                  name: "Result",
+                  icon: <NotebookText size={19} />,
+                },
                 {
                   name: "Invoice",
                   icon: <UsersRound size={19} />,
-                },
-                {
-                  name: "Personal Info",
-                  icon: <UserRound size={19} />,
-                },
-                {
-                  name: "Notes",
-                  icon: <NotebookText size={19} />,
                 },
               ].map((tab) => (
                 <button
@@ -863,63 +877,10 @@ const StudentProfile = () => {
 
               {/* Notes */}
 
-              {activeTab === "Notes" && (
-                <div
-                  className="
-          rounded-2xl
-          border
-          border-border
-          bg-surface
-          p-5
-        "
-                >
-                  <div className="flex items-center gap-3 mb-5">
-                    <div
-                      className="
-              flex
-              h-10
-              w-10
-              items-center
-              justify-center
-              rounded-xl
-              bg-purple-100
-              text-purple-600
-            "
-                    >
-                      <NotebookText size={20} />
-                    </div>
-
-                    <div>
-                      <h3 className="font-bold text-lg">Notes</h3>
-
-                      <p className="text-sm text-text-secondary">
-                        Student notes and information
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className="
-            rounded-xl
-            border
-            border-dashed
-            border-gray-300
-            p-8
-            text-center
-          "
-                  >
-                    <FileText
-                      size={40}
-                      className="
-              mx-auto
-              text-gray-300
-              mb-3
-            "
-                    />
-
-                    <p className="text-text-secondary">No notes available</p>
-                  </div>
-                </div>
+              {activeTab === "Result" && (
+                <>
+                  <ResultCard results={student?.results || []} />
+                </>
               )}
             </div>
           </div>
@@ -961,21 +922,17 @@ const StudentProfile = () => {
             {/* Fee Type */}
             <div>
               <label className="block mb-2 font-medium">Fee Type</label>
-
               <Select
                 size="large"
                 className="w-full"
-                // value={payment.feeType}
-                onChange={(v) => updatePayment("feeType", v)}
+                value={feeType}
+                onChange={(v) => setFeeType(v)}
                 options={[
                   {
                     label: "Admission Fee",
                     value: "Admission Fee",
                   },
-                  {
-                    label: "Monthly Fee",
-                    value: "Monthly Fee",
-                  },
+
                   {
                     label: "Exam Fee",
                     value: "Exam Fee",
@@ -998,35 +955,29 @@ const StudentProfile = () => {
           </div>
 
           <button
-            onClick={() => {
-              if (!paymentAmount) {
-                message.error("Please enter amount");
-                return;
-              }
+            disabled={invoiceLoading}
+            onClick={handlePayment}
+            className={`
+    w-full
+    h-11
+    rounded-xl
+    bg-purple-600
+    text-white
+    font-semibold
+    cursor-pointer
+    placeholder:font-urbanist 
 
-              const paymentData = {
-                studentId: student._id,
-                amount: Number(paymentAmount),
-              };
-
-              console.log(paymentData);
-
-              message.success("Payment added successfully");
-
-              setOpen(false);
-              setPaymentAmount("");
-            }}
-            className="
-      w-full
-      h-11
-      rounded-xl
-      bg-purple-600
-      text-white
-      font-semibold
-      hover:bg-purple-700
-      "
+    ${invoiceLoading ? "opacity-60 cursor-not-allowed" : "hover:bg-purple-700"}
+  `}
           >
-            Confirm Payment
+            {invoiceLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 size={18} className="animate-spin" />
+                Processing...
+              </span>
+            ) : (
+              "Confirm Payment"
+            )}
           </button>
         </div>
       </Modal>

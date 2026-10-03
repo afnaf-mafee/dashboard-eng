@@ -127,7 +127,7 @@ const Students = () => {
 
         school: values.school,
         phone: values.phone,
-
+        status: "Due",
         monthlyFee: Number(values.monthlyFee),
         admissionFee: Number(values.admissionFee),
       };
@@ -324,7 +324,98 @@ const Students = () => {
         </div>
       ),
     },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
 
+      render: (status) => {
+        const isInactive = status === "Due";
+
+        return (
+          <div
+            className={`
+          group
+          flex
+          w-fit
+          items-center
+          gap-2
+          rounded-xl
+          border
+          px-3
+          py-1.5
+          backdrop-blur-xl
+          transition-all
+          duration-300
+          hover:-translate-y-0.5
+          ${
+            isInactive
+              ? `
+                border-red-200/60
+                bg-red-50/60
+                shadow-[0_6px_20px_rgba(239,68,68,0.15)]
+              `
+              : `
+                border-green-200/60
+                bg-green-50/60
+                shadow-[0_6px_20px_rgba(34,197,94,0.15)]
+              `
+          }
+        `}
+          >
+            {/* Dot */}
+            <span
+              className={`
+            relative
+            flex
+            h-3
+            w-3
+            items-center
+            justify-center
+          `}
+            >
+              <span
+                className={`
+              absolute
+              h-3
+              w-3
+              animate-ping
+              rounded-full
+              opacity-40
+              ${isInactive ? "bg-red-500" : "bg-green-500"}
+            `}
+              />
+
+              <span
+                className={`
+              relative
+              h-2.5
+              w-2.5
+              rounded-full
+              shadow-lg
+              ${
+                isInactive
+                  ? "bg-red-500 shadow-red-400/50"
+                  : "bg-green-500 shadow-green-400/50"
+              }
+            `}
+              />
+            </span>
+
+            {/* Text */}
+            <span
+              className={`
+            text-xs
+            font-bold
+            ${isInactive ? "text-red-600" : "text-green-600"}
+          `}
+            >
+              {isInactive ? "Inactive" : "Active"}
+            </span>
+          </div>
+        );
+      },
+    },
     {
       title: "Profile",
       key: "profile",
@@ -445,13 +536,16 @@ const Students = () => {
           <Select
             size="large"
             placeholder="Select Batch"
-            loading={batchLoading}
-            options={
-              batchData?.data?.map((batch) => ({
-                value: "d",
-                label: batch.days,
-              })) || []
-            }
+            options={[
+              {
+                value: "1",
+                label: "Saturday + Monday + Wednesday",
+              },
+              {
+                value: "2",
+                label: "Sunday + Tuesday + Thursday",
+              },
+            ]}
           />
           <Select
             size="large"
@@ -480,15 +574,97 @@ const Students = () => {
             ]}
           />
           {/* Total Students */}
-          <div className="flex h-11 items-center gap-3 rounded-xl border border-border bg-surface px-4 lg:ml-auto">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-              <TeamOutlined className="text-primary" />
+          {/* Total Students */}
+          <div
+            className="
+    group
+    relative
+    flex
+    h-14
+    items-center
+    gap-3
+    overflow-hidden
+    rounded-2xl
+    border
+    border-white/40
+    bg-white/40
+    px-4
+    shadow-[0_8px_30px_rgba(124,58,237,0.15)]
+    backdrop-blur-xl
+    transition-all
+    duration-300
+    hover:-translate-y-1
+    hover:border-purple-300/60
+    hover:shadow-[0_15px_40px_rgba(124,58,237,0.25)]
+  "
+          >
+            {/* Glow Background */}
+            <div
+              className="
+      absolute
+      -right-6
+      -top-6
+      h-20
+      w-20
+      rounded-full
+      bg-purple-500/20
+      blur-2xl
+      transition-all
+      duration-500
+      group-hover:bg-indigo-500/30
+    "
+            />
+
+            {/* Icon */}
+            <div
+              className="
+    relative
+    flex
+    h-10
+    w-10
+    shrink-0
+    items-center
+    justify-center
+    rounded-full
+    bg-gradient-to-br
+    from-purple-600
+    via-violet-500
+    to-indigo-600
+    text-white
+    shadow-[0_8px_20px_rgba(124,58,237,0.35)]
+    transition-transform
+    duration-300
+    group-hover:scale-110
+  "
+            >
+              <TeamOutlined className="text-lg" />
             </div>
 
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <span className="text-xl font-bold text-text">22</span>
-              <span className="text-sm font-medium text-text-muted">
-                Total Students
+            {/* Text */}
+            <div className="relative flex items-center gap-2 whitespace-nowrap">
+              <span
+                className="
+        bg-gradient-to-r
+        from-purple-600
+        via-violet-500
+        to-indigo-600
+        bg-clip-text
+        text-3xl
+        font-extrabold
+        text-transparent
+      "
+              >
+                {studentData?.count || studentData?.data?.length || 0}
+              </span>
+
+              <span
+                className="
+        text-sm
+        font-semiboldF
+        text-gray-600
+      "
+              >
+                Students
               </span>
             </div>
           </div>
@@ -660,20 +836,24 @@ const Students = () => {
               rules={[
                 {
                   required: true,
-                  message: "Please select section",
+                  message: "Please select Batch",
                 },
               ]}
             >
               <Select
                 size="large"
-                placeholder="Select section"
+                placeholder="Select batch"
                 loading={batchLoading}
-                options={
-                  batchData?.data?.map((batch) => ({
-                    value: "d",
-                    label: batch.days,
-                  })) || []
-                }
+                options={[
+                  {
+                    value: "1",
+                    label: "Saturday + Monday + Wednesday",
+                  },
+                  {
+                    value: "2",
+                    label: "Sunday + Tuesday + Thursday",
+                  },
+                ]}
               />
             </Form.Item>
             <Form.Item
