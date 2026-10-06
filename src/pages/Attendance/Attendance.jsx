@@ -16,6 +16,7 @@ import {
   CalendarOutlined,
   CheckOutlined,
   CloseOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 
 import dayjs from "dayjs";
@@ -25,7 +26,7 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 import { GrGroup } from "react-icons/gr";
-import { FiSend } from "react-icons/fi";
+import { FiCopy, FiSend } from "react-icons/fi";
 import {
   useGetStudentsQuery,
   useBulkMarkAttendanceMutation,
@@ -33,37 +34,48 @@ import {
 import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices.js";
 
 const Attendance = () => {
-  // =========================
-  // DATE
-  // =========================
+  const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(dayjs().tz("Asia/Dhaka"));
-  const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
+    const [smsMessage, setSmsMessage] = useState(
+    "Your child was absent today. Please contact the school if needed.",
+  );
+  const [search, setSearch] = useState("");
+  const [selectedClass, setSelectedClass] = useState("all");
+  const [selectedBatch, setSelectedBatch] = useState("all");
+  const [selectedTime, setSelectedTime] = useState("all");
+
+  const searchParams = {
+    search: search || undefined,
+
+    className: selectedClass !== "all" ? selectedClass : undefined,
+
+    batch: selectedBatch !== "all" ? selectedBatch : undefined,
+
+    time: selectedTime !== "all" ? selectedTime : undefined,
+  };
+  if (search) {
+    if (/^\d{6}$/.test(search)) {
+      // 6 digit হলে student ID
+      searchParams.studentId = search;
+    } else if (/^01[3-9]\d{8}$/.test(search)) {
+      // BD phone হলে phone
+      searchParams.phone = search;
+    } else {
+      // অন্য কিছু হলে name
+      searchParams.name = search;
+    }
+  }
+
   // =========================
   // SEARCH
   // =========================
   const [searchText, setSearchText] = useState("");
 
   // =========================
-  // CLASS
-  // =========================
-  const [selectedClass, setSelectedClass] = useState("all");
-
-  // =========================
-  // SELECTED STUDENTS
-  // =========================
-  const [selectedStudents, setSelectedStudents] = useState([]);
-
-  // =========================
-  // MESSAGE
-  // =========================
-  const [smsMessage, setSmsMessage] = useState(
-    "Your child was absent today. Please contact the school if needed.",
-  );
-
-  // =========================
   // GET STUDENTS
   // =========================
-  const { data, isLoading, isFetching } = useGetStudentsQuery();
+  const { data, isLoading, isFetching } = useGetStudentsQuery(searchParams);
+  const studentData = data?.data || [];
 
   // =========================
   // ATTENDANCE MUTATION
@@ -115,9 +127,7 @@ const Attendance = () => {
     });
   }, [students, searchText, selectedClass]);
 
-  // =========================
-  // MARK ATTENDANCE
-  // =========================
+ 
 
   // =========================
   // TABLE ROW SELECTION
@@ -161,6 +171,7 @@ const Attendance = () => {
   // =========================
   // SEND MESSAGE
   // =========================
+
   const handleSendMessage = async () => {
     try {
       if (selectedStudents.length === 0) {
@@ -257,53 +268,135 @@ const Attendance = () => {
         </div>
       ),
     },
-
-    // =========================
-    // STUDENT ID
-    // =========================
     {
       title: "Student ID",
       dataIndex: "studentId",
+      key: "studentId",
+
+      render: (studentId) => (
+        <div className="flex items-center gap-2">
+          <div
+            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition hover:bg-gray-100"
+            onClick={() => {
+              navigator.clipboard.writeText(String(studentId));
+              message.success("Student ID copied!");
+            }}
+          >
+            <span className="font-semibold">{studentId}</span>
+
+            <FiCopy size={15} className="text-gray-400 hover:text-purple-600" />
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Phone",
+      dataIndex: "phone",
+      key: "phone",
+
+      render: (phone) => (
+        <div
+          className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition hover:bg-gray-100"
+          onClick={() => {
+            navigator.clipboard.writeText(String(phone));
+            message.success("Phone number copied!");
+          }}
+        >
+          <span className="font-medium">{phone}</span>
+
+          <FiCopy size={15} className="text-gray-400 hover:text-purple-600" />
+        </div>
+      ),
     },
 
-    // =========================
-    // CLASS
-    // =========================
     {
       title: "Class",
-
       dataIndex: "className",
+      key: "className",
 
       render: (value) => (
         <Tag
-          className="
-            !border-0
-            !bg-purple-100
-            !text-purple-700
-            !rounded-lg
-            !font-semibold
-          "
+          style={{
+            border: "none",
+            borderRadius: "8px",
+            padding: "3px 10px",
+            background: "#f3e8ff",
+            color: "#7e22ce",
+            fontWeight: 600,
+          }}
         >
           {value}
         </Tag>
       ),
     },
-
-    // =========================
-    // SECTION
-    // =========================
     {
-      title: "Section",
-      dataIndex: "section",
-    },
+      title: "Batch",
+      dataIndex: "batch",
+      key: "batch",
 
-    // =========================
-    // PHONE
-    // =========================
-    {
-      title: "Phone",
-      dataIndex: "phone",
+      render: (batch) => {
+        const batchSchedule = {
+          1: "Saturday + Monday + Wednesday",
+          2: "Sunday + Tuesday + Thursday",
+        };
+
+        return (
+          <div
+            className="
+            w-fit
+            rounded-xl
+            border
+            border-purple-200
+            bg-gradient-to-r
+            from-purple-50
+            to-indigo-50
+            px-3
+            py-1
+            
+           
+            font-semibold
+            text-purple-700
+            shadow-[0_5px_20px_rgba(124,58,237,0.15)]
+            "
+          >
+            {batchSchedule[String(batch)] || "No Batch"}
+          </div>
+        );
+      },
     },
+   {
+  title: "Time",
+  dataIndex: "time",
+  key: "time",
+
+  render: (time) => (
+    <span
+      className="
+      inline-flex
+      items-center
+      rounded-lg
+      border
+      border-blue-200
+      bg-gradient-to-r
+      from-blue-50
+      to-cyan-50
+      px-3
+      py-1
+      text-xs
+      font-bold
+      text-blue-700
+      shadow-[0_3px_12px_rgba(59,130,246,0.2)]
+      transition-all
+      duration-300
+      hover:-translate-y-0.5
+      hover:shadow-[0_6px_18px_rgba(59,130,246,0.3)]
+      "
+    >
+      {time}
+    </span>
+  ),
+}
+
   ];
 
   // =========================
@@ -386,36 +479,16 @@ const Attendance = () => {
       {/* =========================
           SEARCH + FILTER
       ========================= */}
-
-      <div
-        className="
-          rounded-[28px]
-          border
-          border-border
-          bg-surface-soft/80
-          backdrop-blur-2xl
-          p-5
-          shadow-[0_20px_60px_rgba(91,33,182,0.10)]
-        "
-      >
-        <div
-          className="
-            flex
-            flex-col
-            md:flex-row
-            gap-3
-          "
-        >
+      <div className="mb-5 rounded-2xl border border-border bg-surface-soft p-4 backdrop-blur-xl">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <Input
             size="large"
-            prefix={<SearchOutlined />}
-            placeholder="Search student..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="
-              !rounded-xl
-              max-w-md
-            "
+            allowClear
+            prefix={<SearchOutlined className="text-text-muted" />}
+            placeholder="Search by name, ID or phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="!h-11 !rounded-xl lg:max-w-md"
           />
 
           <Select
@@ -436,18 +509,33 @@ const Attendance = () => {
           <Select
             size="large"
             placeholder="Select Batch"
-            loading={batchLoading}
-            options={
-              batchData?.data?.map((batch) => ({
-                value: "d",
-                label: batch.days,
-              })) || []
-            }
+            value={selectedBatch}
+            onChange={setSelectedBatch}
+            options={[
+              {
+                value: "all",
+                label: "All Batch",
+              },
+              {
+                value: "1",
+                label: "Saturday + Monday + Wednesday",
+              },
+              {
+                value: "2",
+                label: "Sunday + Tuesday + Thursday",
+              },
+            ]}
           />
           <Select
             size="large"
             placeholder="Select time"
+            value={selectedTime}
+            onChange={setSelectedTime}
             options={[
+              {
+                value: "all",
+                label: "All Time",
+              },
               {
                 value: "A1",
                 label: "A1",
@@ -468,33 +556,115 @@ const Attendance = () => {
                 value: "A5",
                 label: "A5",
               },
+              {
+                value: "A6",
+                label: "A6",
+              },
+              {
+                value: "A7",
+                label: "A7",
+              },
+              {
+                value: "A8",
+                label: "A8",
+              },
             ]}
           />
-
-          <Button
-            size="large"
-            onClick={handleSelectAllAbsent}
+          {/* Total Students */}
+          {/* Total Students */}
+          <div
             className="
-              !rounded-xl
-              !border-purple-300
-              !bg-purple-50
-              !text-purple-700
-              !font-semibold
-            "
+    group
+    relative
+    flex
+    h-14
+    items-center
+    gap-3
+    overflow-hidden
+    rounded-2xl
+    border
+    border-white/40
+    bg-white/40
+    px-4
+    shadow-[0_8px_30px_rgba(124,58,237,0.15)]
+    backdrop-blur-xl
+    transition-all
+    duration-300
+    hover:-translate-y-1
+    hover:border-purple-300/60
+    hover:shadow-[0_15px_40px_rgba(124,58,237,0.25)]
+  "
           >
-            ✓ Select All Absent
-          </Button>
+            {/* Glow Background */}
+            <div
+              className="
+      absolute
+      -right-6
+      -top-6
+      h-20
+      w-20
+      rounded-full
+      bg-purple-500/20
+      blur-2xl
+      transition-all
+      duration-500
+      group-hover:bg-indigo-500/30
+    "
+            />
 
-          <Button
-            size="large"
-            onClick={handleClearSelection}
-            disabled={selectedStudents.length === 0}
-            className="
-              !rounded-xl
-            "
-          >
-            Clear Selection
-          </Button>
+            {/* Icon */}
+            <div
+              className="
+    relative
+    flex
+    h-10
+    w-10
+    shrink-0
+    items-center
+    justify-center
+    rounded-full
+    bg-gradient-to-br
+    from-purple-600
+    via-violet-500
+    to-indigo-600
+    text-white
+    shadow-[0_8px_20px_rgba(124,58,237,0.35)]
+    transition-transform
+    duration-300
+    group-hover:scale-110
+  "
+            >
+              <TeamOutlined className="text-lg" />
+            </div>
+
+            {/* Text */}
+            <div className="relative flex items-center gap-2 whitespace-nowrap">
+              <span
+                className="
+        bg-gradient-to-r
+        from-purple-600
+        via-violet-500
+        to-indigo-600
+        bg-clip-text
+        text-3xl
+        font-extrabold
+        text-transparent
+      "
+              >
+                {studentData?.count || studentData?.data?.length || 0}
+              </span>
+
+              <span
+                className="
+        text-sm
+        font-semiboldF
+        text-gray-600
+      "
+              >
+                Students
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -704,7 +874,6 @@ const Attendance = () => {
           ========================= */}
 
           <div className="mt-5">
-           
             {/* <textarea
               value={smsMessage}
               onChange={(e) => setSmsMessage(e.target.value)}
@@ -726,7 +895,6 @@ const Attendance = () => {
                 focus:ring-purple-100
               "
             /> */}
-
           </div>
 
           {/* =========================

@@ -13,10 +13,32 @@ import { useGetStudentsQuery } from "../../redux/services/studentsApiServices/st
 const FeeHistory = () => {
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState("all");
-
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
-  const { data: studentData, isLoading } = useGetStudentsQuery();
+  const [selectedBatch, setSelectedBatch] = useState("all");
+  const [selectedTime, setSelectedTime] = useState("all");
+  const searchParams = {
+    search: search || undefined,
+
+    className: selectedClass !== "all" ? selectedClass : undefined,
+
+    batch: selectedBatch !== "all" ? selectedBatch : undefined,
+
+    time: selectedTime !== "all" ? selectedTime : undefined,
+  };
+  if (search) {
+    if (/^\d{6}$/.test(search)) {
+      // 6 digit হলে student ID
+      searchParams.studentId = search;
+    } else if (/^01[3-9]\d{8}$/.test(search)) {
+      // BD phone হলে phone
+      searchParams.phone = search;
+    } else {
+      // অন্য কিছু হলে name
+      searchParams.name = search;
+    }
+  }
+
+  const { data: studentData, isLoading } = useGetStudentsQuery(searchParams);
   // Replace with API data
   const students = studentData?.data || [];
 
@@ -134,52 +156,73 @@ font-semibold
         </Tag>
       ),
     },
-
     {
       title: "Batch",
       dataIndex: "batch",
-    },
-    {
-      title: "Phone",
-      dataIndex: "phone",
+      key: "batch",
 
-      render: (phone) => (
-        <div
-          className="
-      flex
-      items-center
-      gap-2
-      "
-        >
+      render: (batch) => {
+        const batchSchedule = {
+          1: "Saturday + Monday + Wednesday",
+          2: "Sunday + Tuesday + Thursday",
+        };
+
+        return (
           <div
             className="
-        inline-flex
-        items-center
-        rounded-xl
-        bg-gradient-to-r
-        from-blue-50
-        to-indigo-50
-        border
-        border-purple-200
-        px-3
-        py-2
-        "
+            w-fit
+            rounded-xl
+            border
+            border-purple-200
+            bg-gradient-to-r
+            from-purple-50
+            to-indigo-50
+            px-3
+            py-1
+            
+           
+            font-semibold
+            text-purple-700
+            shadow-[0_5px_20px_rgba(124,58,237,0.15)]
+            "
           >
-            <span
-              className="
-          font-urbanist
-          font-bold
-          text-purple-700
-          tracking-wide
-          "
-            >
-              {phone}
-            </span>
+            {batchSchedule[String(batch)] || "No Batch"}
           </div>
-        </div>
+        );
+      },
+    },
+    {
+      title: "Time",
+      dataIndex: "time",
+      key: "time",
+
+      render: (time) => (
+        <span
+          className="
+      inline-flex
+      items-center
+      rounded-lg
+      border
+      border-blue-200
+      bg-gradient-to-r
+      from-blue-50
+      to-cyan-50
+      px-3
+      py-1
+      text-xs
+      font-bold
+      text-blue-700
+      shadow-[0_3px_12px_rgba(59,130,246,0.2)]
+      transition-all
+      duration-300
+      hover:-translate-y-0.5
+      hover:shadow-[0_6px_18px_rgba(59,130,246,0.3)]
+      "
+        >
+          {time}
+        </span>
       ),
     },
-
     {
       title: "Monthly Fee",
 
@@ -204,28 +247,6 @@ text-purple-700
 
       render: (_, record) => <MonthCell student={record} month={month} />,
     })),
-
-    {
-      title: "History",
-
-      render: (_, record) => (
-        <Button
-          type="primary"
-          icon={<EyeOutlined />}
-          onClick={() => setSelectedStudent(record)}
-          className="
-rounded-xl
-bg-gradient-to-r
-from-purple-600
-to-indigo-600
-border-none
-font-semibold
-"
-        >
-          View
-        </Button>
-      ),
-    },
   ];
 
   return (
@@ -261,7 +282,7 @@ text-gray-500
           </p>
         </div>
 
-        <div
+        {/* <div
           className="
 rounded-2xl
 bg-gradient-to-r
@@ -276,7 +297,7 @@ shadow-lg
         >
           <DollarOutlined />
           Total Collection
-        </div>
+        </div> */}
       </div>
 
       {/* Filter */}
@@ -311,18 +332,33 @@ shadow-lg
           <Select
             size="large"
             placeholder="Select Batch"
-            loading={batchLoading}
-            options={
-              batchData?.data?.map((batch) => ({
-                value: "d",
-                label: batch.days,
-              })) || []
-            }
+            value={selectedBatch}
+            onChange={setSelectedBatch}
+            options={[
+              {
+                value: "all",
+                label: "All Batch",
+              },
+              {
+                value: "1",
+                label: "Saturday + Monday + Wednesday",
+              },
+              {
+                value: "2",
+                label: "Sunday + Tuesday + Thursday",
+              },
+            ]}
           />
           <Select
             size="large"
             placeholder="Select time"
+            value={selectedTime}
+            onChange={setSelectedTime}
             options={[
+              {
+                value: "all",
+                label: "All Time",
+              },
               {
                 value: "A1",
                 label: "A1",
@@ -343,18 +379,112 @@ shadow-lg
                 value: "A5",
                 label: "A5",
               },
+              {
+                value: "A6",
+                label: "A6",
+              },
+              {
+                value: "A7",
+                label: "A7",
+              },
+              {
+                value: "A8",
+                label: "A8",
+              },
             ]}
           />
           {/* Total Students */}
-          <div className="flex h-11 items-center gap-3 rounded-xl border border-border bg-surface px-4 lg:ml-auto">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-              <TeamOutlined className="text-primary" />
+          {/* Total Students */}
+          <div
+            className="
+          group
+          relative
+          flex
+          h-14
+          items-center
+          gap-3
+          overflow-hidden
+          rounded-2xl
+          border
+          border-white/40
+          bg-white/40
+          px-4
+          shadow-[0_8px_30px_rgba(124,58,237,0.15)]
+          backdrop-blur-xl
+          transition-all
+          duration-300
+          hover:-translate-y-1
+          hover:border-purple-300/60
+          hover:shadow-[0_15px_40px_rgba(124,58,237,0.25)]
+        "
+          >
+            {/* Glow Background */}
+            <div
+              className="
+            absolute
+            -right-6
+            -top-6
+            h-20
+            w-20
+            rounded-full
+            bg-purple-500/20
+            blur-2xl
+            transition-all
+            duration-500
+            group-hover:bg-indigo-500/30
+          "
+            />
+
+            {/* Icon */}
+            <div
+              className="
+          relative
+          flex
+          h-10
+          w-10
+          shrink-0
+          items-center
+          justify-center
+          rounded-full
+          bg-gradient-to-br
+          from-purple-600
+          via-violet-500
+          to-indigo-600
+          text-white
+          shadow-[0_8px_20px_rgba(124,58,237,0.35)]
+          transition-transform
+          duration-300
+          group-hover:scale-110
+        "
+            >
+              <TeamOutlined className="text-lg" />
             </div>
 
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <span className="text-xl font-bold text-text">22</span>
-              <span className="text-sm font-medium text-text-muted">
-                Total Students
+            {/* Text */}
+            <div className="relative flex items-center gap-2 whitespace-nowrap">
+              <span
+                className="
+              bg-gradient-to-r
+              from-purple-600
+              via-violet-500
+              to-indigo-600
+              bg-clip-text
+              text-3xl
+              font-extrabold
+              text-transparent
+            "
+              >
+                {studentData?.count || studentData?.data?.length || 0}
+              </span>
+
+              <span
+                className="
+              text-sm
+              font-semiboldF
+              text-gray-600
+            "
+              >
+                Students
               </span>
             </div>
           </div>
@@ -442,6 +572,9 @@ lg:block
             pagination={{
               pageSize: 10,
             }}
+            bordered
+            className="fee-history-table"
+            rowClassName={() => "hover:bg-purple-50 transition"}
           />
         )}
       </div>

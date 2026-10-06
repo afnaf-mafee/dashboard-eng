@@ -17,14 +17,9 @@ import {
   CalendarOutlined,
   DownloadOutlined,
   CloseOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
-import {
-  HiOutlineWallet,
-  HiOutlineUsers,
-  HiOutlineClock,
-  HiOutlineCheckCircle,
-} from "react-icons/hi2";
-import FeeSummaryCards from "../../components/students/FeeSummaryCards";
+
 import {
   useGetStudentsQuery,
   useAddFeePaymentMutation,
@@ -32,10 +27,35 @@ import {
 import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices";
 const FeeCollection = () => {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState("all");
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const { data: studentData, isLoading } = useGetStudentsQuery();
-  const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
+  const [selectedBatch, setSelectedBatch] = useState("all");
+  const [selectedTime, setSelectedTime] = useState("all");
+  const searchParams = {
+    search: search || undefined,
+
+    className: selectedClass !== "all" ? selectedClass : undefined,
+
+    batch: selectedBatch !== "all" ? selectedBatch : undefined,
+
+    time: selectedTime !== "all" ? selectedTime : undefined,
+  };
+  if (search) {
+    if (/^\d{6}$/.test(search)) {
+      // 6 digit হলে student ID
+      searchParams.studentId = search;
+    } else if (/^01[3-9]\d{8}$/.test(search)) {
+      // BD phone হলে phone
+      searchParams.phone = search;
+    } else {
+      // অন্য কিছু হলে name
+      searchParams.name = search;
+    }
+  }
+
+  const { data: studentData, isLoading } = useGetStudentsQuery(searchParams);
+
   const [addFeePayment, { isLoading: isPaymentLoading }] =
     useAddFeePaymentMutation();
   const students = studentData?.data;
@@ -127,40 +147,91 @@ font-semibold"
         </div>
       ),
     },
-
-    {
-      title: "Student ID",
-
-      dataIndex: "studentId",
-    },
-
-    {
+{
       title: "Class",
-
       dataIndex: "className",
 
       render: (value) => (
-        <span
+        <Tag
           className="
 rounded-lg
-bg-purple-100
 px-3
 py-1
-text-xs
 font-semibold
-text-purple-700"
+"
+          color="purple"
         >
           {value}
+        </Tag>
+      ),
+    },
+    {
+      title: "Batch",
+      dataIndex: "batch",
+      key: "batch",
+
+      render: (batch) => {
+        const batchSchedule = {
+          1: "Saturday + Monday + Wednesday",
+          2: "Sunday + Tuesday + Thursday",
+        };
+
+        return (
+          <div
+            className="
+            w-fit
+            rounded-xl
+            border
+            border-purple-200
+            bg-gradient-to-r
+            from-purple-50
+            to-indigo-50
+            px-3
+            py-1
+            
+           
+            font-semibold
+            text-purple-700
+            shadow-[0_5px_20px_rgba(124,58,237,0.15)]
+            "
+          >
+            {batchSchedule[String(batch)] || "No Batch"}
+          </div>
+        );
+      },
+    },
+    {
+      title: "Time",
+      dataIndex: "time",
+      key: "time",
+
+      render: (time) => (
+        <span
+          className="
+      inline-flex
+      items-center
+      rounded-lg
+      border
+      border-blue-200
+      bg-gradient-to-r
+      from-blue-50
+      to-cyan-50
+      px-3
+      py-1
+      text-xs
+      font-bold
+      text-blue-700
+      shadow-[0_3px_12px_rgba(59,130,246,0.2)]
+      transition-all
+      duration-300
+      hover:-translate-y-0.5
+      hover:shadow-[0_6px_18px_rgba(59,130,246,0.3)]
+      "
+        >
+          {time}
         </span>
       ),
     },
-
-    {
-      title: "Batch",
-
-      dataIndex: "batch",
-    },
-
     {
       title: "Monthly Fee",
 
@@ -170,47 +241,21 @@ text-purple-700"
         <span
           className="
 font-bold
-text-purple-600"
+text-purple-700
+"
         >
           ৳ {value}
         </span>
       ),
     },
+   
+   
 
-    {
-      title: "Status",
+    
 
-      dataIndex: "status",
+    
 
-      render: (value) =>
-        value === "Paid" ? (
-          <span
-            className="
-rounded-full
-bg-green-100
-px-3
-py-1
-text-xs
-font-semibold
-text-green-600"
-          >
-            🟢 Paid
-          </span>
-        ) : (
-          <span
-            className="
-rounded-full
-bg-red-100
-px-3
-py-1
-text-xs
-font-semibold
-text-red-600"
-          >
-            🔴 Due
-          </span>
-        ),
-    },
+   
 
     {
       title: "Action",
@@ -302,37 +347,17 @@ text-text-muted"
         </div>
       </div>
 
-      <FeeSummaryCards total={studentData?.count} />
-
-      <div
-        className="
-rounded-[28px]
-
-border
-border-border
-
-bg-surface-soft
-
-backdrop-blur-2xl
-
-p-5
-
-mb-5"
-      >
-        <div
-          className="
-flex
-gap-3
-items-center"
-        >
+      {/* FILTERING */}
+      <div className="mb-5 rounded-2xl border border-border bg-surface-soft p-4 backdrop-blur-xl">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <Input
             size="large"
-            prefix={<SearchOutlined />}
-            placeholder="
-Search by name, ID or phone..."
-            className="
-max-w-md
-!rounded-xl"
+            allowClear
+            prefix={<SearchOutlined className="text-text-muted" />}
+            placeholder="Search by name, ID or phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="!h-11 !rounded-xl lg:max-w-md"
           />
 
           <Select
@@ -353,18 +378,33 @@ max-w-md
           <Select
             size="large"
             placeholder="Select Batch"
-            loading={batchLoading}
-            options={
-              batchData?.data?.map((batch) => ({
-                value: "d",
-                label: batch.days,
-              })) || []
-            }
+            value={selectedBatch}
+            onChange={setSelectedBatch}
+            options={[
+              {
+                value: "all",
+                label: "All Batch",
+              },
+              {
+                value: "1",
+                label: "Saturday + Monday + Wednesday",
+              },
+              {
+                value: "2",
+                label: "Sunday + Tuesday + Thursday",
+              },
+            ]}
           />
           <Select
             size="large"
             placeholder="Select time"
+            value={selectedTime}
+            onChange={setSelectedTime}
             options={[
+              {
+                value: "all",
+                label: "All Time",
+              },
               {
                 value: "A1",
                 label: "A1",
@@ -385,33 +425,117 @@ max-w-md
                 value: "A5",
                 label: "A5",
               },
+              {
+                value: "A6",
+                label: "A6",
+              },
+              {
+                value: "A7",
+                label: "A7",
+              },
+              {
+                value: "A8",
+                label: "A8",
+              },
             ]}
           />
-
-          <Button
-            icon={<DownloadOutlined />}
+          {/* Total Students */}
+          {/* Total Students */}
+          <div
             className="
-ml-auto
-
-!rounded-xl
-
-!bg-gradient-to-r
-
-!from-brand-primary
-
-!to-brand-secondary
-
-!text-white
-
-!border-0
-
-"
+          group
+          relative
+          flex
+          h-14
+          items-center
+          gap-3
+          overflow-hidden
+          rounded-2xl
+          border
+          border-white/40
+          bg-white/40
+          px-4
+          shadow-[0_8px_30px_rgba(124,58,237,0.15)]
+          backdrop-blur-xl
+          transition-all
+          duration-300
+          hover:-translate-y-1
+          hover:border-purple-300/60
+          hover:shadow-[0_15px_40px_rgba(124,58,237,0.25)]
+        "
           >
-            Export
-          </Button>
+            {/* Glow Background */}
+            <div
+              className="
+            absolute
+            -right-6
+            -top-6
+            h-20
+            w-20
+            rounded-full
+            bg-purple-500/20
+            blur-2xl
+            transition-all
+            duration-500
+            group-hover:bg-indigo-500/30
+          "
+            />
+
+            {/* Icon */}
+            <div
+              className="
+          relative
+          flex
+          h-10
+          w-10
+          shrink-0
+          items-center
+          justify-center
+          rounded-full
+          bg-gradient-to-br
+          from-purple-600
+          via-violet-500
+          to-indigo-600
+          text-white
+          shadow-[0_8px_20px_rgba(124,58,237,0.35)]
+          transition-transform
+          duration-300
+          group-hover:scale-110
+        "
+            >
+              <TeamOutlined className="text-lg" />
+            </div>
+
+            {/* Text */}
+            <div className="relative flex items-center gap-2 whitespace-nowrap">
+              <span
+                className="
+              bg-gradient-to-r
+              from-purple-600
+              via-violet-500
+              to-indigo-600
+              bg-clip-text
+              text-3xl
+              font-extrabold
+              text-transparent
+            "
+              >
+                {studentData?.count || studentData?.data?.length || 0}
+              </span>
+
+              <span
+                className="
+              text-sm
+              font-semiboldF
+              text-gray-600
+            "
+              >
+                Students
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-
       {/* Table */}
 
       <div className="overflow-hidden rounded-2xl border border-border bg-surface-soft shadow-[0_10px_40px_rgba(91,33,182,0.06)] backdrop-blur-xl">

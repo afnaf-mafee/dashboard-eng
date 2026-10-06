@@ -30,7 +30,6 @@ import {
 } from "../../redux/services/studentsApiServices/studentApiServices";
 import { useNavigate } from "react-router-dom";
 
-
 const Students = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
@@ -40,13 +39,19 @@ const Students = () => {
   const [editingStudent, setEditingStudent] = useState(null);
 
   const [deleteStudent, setDeleteStudent] = useState(null);
-
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState("all");
+  const [selectedBatch, setSelectedBatch] = useState("all");
+  const [selectedTime, setSelectedTime] = useState("all");
   const searchParams = {
-    className: selectedClass !== "all" ? selectedClass : undefined,
-  };
+    search: search || undefined,
 
+    className: selectedClass !== "all" ? selectedClass : undefined,
+
+    batch: selectedBatch !== "all" ? selectedBatch : undefined,
+
+    time: selectedTime !== "all" ? selectedTime : undefined,
+  };
   if (search) {
     if (/^\d{6}$/.test(search)) {
       // 6 digit হলে student ID
@@ -122,7 +127,7 @@ const Students = () => {
         name: values.name,
         className: values.className,
 
-        batch: "1",
+        batch: values.section,
         time: values.time,
 
         school: values.school,
@@ -234,7 +239,25 @@ const Students = () => {
         </div>
       ),
     },
+    {
+      title: "Phone",
+      dataIndex: "phone",
+      key: "phone",
 
+      render: (phone) => (
+        <div
+          className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition hover:bg-gray-100"
+          onClick={() => {
+            navigator.clipboard.writeText(String(phone));
+            message.success("Phone number copied!");
+          }}
+        >
+          <span className="font-medium">{phone}</span>
+
+          <FiCopy size={15} className="text-gray-400 hover:text-purple-600" />
+        </div>
+      ),
+    },
     {
       title: "Class",
       dataIndex: "className",
@@ -255,12 +278,42 @@ const Students = () => {
         </Tag>
       ),
     },
-
     {
       title: "Batch",
-      dataIndex: "section",
-      key: "section",
+      dataIndex: "batch",
+      key: "batch",
+
+      render: (batch) => {
+        const batchSchedule = {
+          1: "Saturday + Monday + Wednesday",
+          2: "Sunday + Tuesday + Thursday",
+        };
+
+        return (
+          <div
+            className="
+        w-fit
+        rounded-xl
+        border
+        border-purple-200
+        bg-gradient-to-r
+        from-purple-50
+        to-indigo-50
+        px-3
+        py-1
+        
+       
+        font-semibold
+        text-purple-700
+        shadow-[0_5px_20px_rgba(124,58,237,0.15)]
+        "
+          >
+            {batchSchedule[String(batch)] || "No Batch"}
+          </div>
+        );
+      },
     },
+
     {
       title: "Monthly Fee",
       dataIndex: "monthlyFee",
@@ -300,30 +353,38 @@ const Students = () => {
     },
 
     {
-      title: "School",
-      dataIndex: "school",
-      key: "school",
-    },
+  title: "Time",
+  dataIndex: "time",
+  key: "time",
 
-    {
-      title: "Phone",
-      dataIndex: "phone",
-      key: "phone",
-
-      render: (phone) => (
-        <div
-          className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition hover:bg-gray-100"
-          onClick={() => {
-            navigator.clipboard.writeText(String(phone));
-            message.success("Phone number copied!");
-          }}
-        >
-          <span className="font-medium">{phone}</span>
-
-          <FiCopy size={15} className="text-gray-400 hover:text-purple-600" />
-        </div>
-      ),
-    },
+  render: (time) => (
+    <span
+      className="
+      inline-flex
+      items-center
+      rounded-lg
+      border
+      border-blue-200
+      bg-gradient-to-r
+      from-blue-50
+      to-cyan-50
+      px-3
+      py-1
+      text-xs
+      font-bold
+      text-blue-700
+      shadow-[0_3px_12px_rgba(59,130,246,0.2)]
+      transition-all
+      duration-300
+      hover:-translate-y-0.5
+      hover:shadow-[0_6px_18px_rgba(59,130,246,0.3)]
+      "
+    >
+      {time}
+    </span>
+  ),
+}
+,
     {
       title: "Status",
       dataIndex: "status",
@@ -536,7 +597,13 @@ const Students = () => {
           <Select
             size="large"
             placeholder="Select Batch"
+            value={selectedBatch}
+            onChange={setSelectedBatch}
             options={[
+              {
+                value: "all",
+                label: "All Batch",
+              },
               {
                 value: "1",
                 label: "Saturday + Monday + Wednesday",
@@ -550,7 +617,13 @@ const Students = () => {
           <Select
             size="large"
             placeholder="Select time"
+            value={selectedTime}
+            onChange={setSelectedTime}
             options={[
+              {
+                value: "all",
+                label: "All Time",
+              },
               {
                 value: "A1",
                 label: "A1",
@@ -855,7 +928,6 @@ const Students = () => {
               <Select
                 size="large"
                 placeholder="Select batch"
-                
                 options={[
                   {
                     value: "1",

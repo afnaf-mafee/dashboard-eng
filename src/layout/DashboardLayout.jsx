@@ -12,19 +12,19 @@ import {
   ChartNoAxesCombined,
   Blocks,
   Wallet,
-  Trophy
+  Trophy,
 } from "lucide-react";
+import useAuth from "../hooks/useAuth";
 
 const DashboardLayout = () => {
   const [open, setOpen] = useState(false);
+  const { name, email, role } = useAuth();
   const dispatch = useDispatch();
-const handleLogout = () => {
+  const handleLogout = () => {
+    dispatch(logout());
 
-  dispatch(logout());
-
-  window.location.href = "/login";
-
-};
+    window.location.href = "/login";
+  };
   const navItems = [
     {
       name: "Students",
@@ -54,7 +54,7 @@ const handleLogout = () => {
     {
       name: "Result Ranking",
       path: "/result-ranking",
-      icon:  Trophy,
+      icon: Trophy,
     },
   ];
 
@@ -129,10 +129,41 @@ const handleLogout = () => {
         >
           {/* Logo */}
           <div className="mb-12 flex items-center justify-between">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary shadow-lg shadow-brand-primary/25">
-              <span className="text-base font-bold text-white">M</span>
-            </div>
+            <div className="flex items-center gap-3">
+              {/* Avatar */}
+              <div
+                className="
+      flex
+      h-12
+      w-12
+      items-center
+      justify-center
+      rounded-full
+      bg-gradient-to-br
+      from-brand-primary
+      to-brand-secondary
+      shadow-lg
+      shadow-brand-primary/25
+      ring-2
+      ring-white/50
+    "
+              >
+                <span className="text-base font-bold text-white">
+                  {name?.charAt(0)?.toUpperCase() || "U"}
+                </span>
+              </div>
 
+              {/* Name */}
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-gray-800">
+                  {name || "User"}
+                </span>
+
+                <span className="text-xs font-medium text-gray-500">
+                  Welcome back 👋
+                </span>
+              </div>
+            </div>
             <button
               onClick={() => setOpen(false)}
               className="rounded-lg p-2 text-text-muted hover:bg-purple-soft hover:text-brand-secondary lg:hidden"

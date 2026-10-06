@@ -79,3 +79,49 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #7c3aed;
 }
+
+
+.fee-history-table .ant-table {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.fee-history-table .ant-table-thead > tr > th {
+  background: linear-gradient(
+    90deg,
+   #9333ea,
+  #4f46e5
+  ) !important;
+  color: white !important;
+  font-weight: 700;
+  text-align: center;
+  padding: 14px 10px;
+  border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+.fee-history-table .ant-table-tbody > tr > td {
+  text-align: center;
+  padding: 12px 8px;
+  border: 1px solid #ede9fe;
+}
+
+.fee-history-table .ant-table-tbody > tr > td:first-child {
+  text-align: left;
+}
+
+.fee-history-table .ant-table-tbody > tr:hover > td {
+  background: #faf5ff !important;
+}
+
+
+/* Month Grid Cell */
+.fee-history-table .ant-table-cell {
+  min-width: 80px;
+}
+
+
+/* Due / Paid Button */
+.fee-history-table button {
+  width: 70px;
+  font-size: 13px;
+}
