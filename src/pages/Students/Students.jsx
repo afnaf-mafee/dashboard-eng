@@ -29,7 +29,7 @@ import {
   useUpdateStudentMutation,
 } from "../../redux/services/studentsApiServices/studentApiServices";
 import { useNavigate } from "react-router-dom";
-import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices";
+
 
 const Students = () => {
   const [form] = Form.useForm();
@@ -65,7 +65,7 @@ const Students = () => {
   const [deleteStudentApi, { isLoading: isDeleting }] =
     useDeleteStudentMutation();
   const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
-  const { data: batchData, isLoading: batchLoading } = useGetBatchesQuery();
+
   // ==========================================
   // Add Student
   // ==========================================
@@ -571,6 +571,18 @@ const Students = () => {
                 value: "A5",
                 label: "A5",
               },
+              {
+                value: "A6",
+                label: "A6",
+              },
+              {
+                value: "A7",
+                label: "A7",
+              },
+              {
+                value: "A8",
+                label: "A8",
+              },
             ]}
           />
           {/* Total Students */}
@@ -843,7 +855,7 @@ const Students = () => {
               <Select
                 size="large"
                 placeholder="Select batch"
-                loading={batchLoading}
+                
                 options={[
                   {
                     value: "1",

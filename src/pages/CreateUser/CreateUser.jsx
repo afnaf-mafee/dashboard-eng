@@ -1,42 +1,46 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Form, Input, message } from "antd";
+
 import {
   LockOutlined,
   MailOutlined,
-  EyeOutlined,
-  EyeInvisibleOutlined,
+  UserOutlined,
   LoginOutlined,
+  UserAddOutlined,
 } from "@ant-design/icons";
-import { useLoginAdminMutation } from "../../redux/services/authApiService/authApiService";
+import { useCreateAdminMutation } from "../../redux/services/authApiService/authApiService";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
-const Login = () => {
+const CreateUser = () => {
   const [form] = Form.useForm();
-  const [loginAdmin, { isLoading }] = useLoginAdminMutation();
   const dispatch = useDispatch();
-  const navigate = useNavigate()
 
-  const handleLogin = async (values) => {
+  const navigate = useNavigate();
+  const [createAdmin, { isLoading }] = useCreateAdminMutation();
+
+  const handleCreateUser = async (values) => {
     try {
-      const res = await loginAdmin(values).unwrap();
+      const res = await createAdmin(values).unwrap();
 
       if (res?.success) {
         dispatch(
           setCredentials({
-            user: res.user,
+            user: res.user || res.data,
             token: res.token,
           }),
         );
 
-        message.success("Login successful!");
+        message.success("Account created successfully!");
 
-        navigate("/")
-      } else {
-        message.error("Login failed");
+        form.resetFields();
+
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
       }
     } catch (error) {
-     
+      message.error(error?.data?.message || "User creation failed");
     }
   };
 
@@ -104,7 +108,7 @@ const Login = () => {
             sm:text-[100px]
           "
         >
-          LOGIN
+          ELC
         </div>
 
         <div
@@ -183,159 +187,126 @@ const Login = () => {
             {/* Neon Logo */}
             <div
               className="
-                mx-auto
-                mb-5
-                flex
-                h-16
-                w-16
-                items-center
-                justify-center
-                rounded-2xl
-                border
-                border-purple-200
-                bg-gradient-to-br
-                from-brand-primary
-                to-brand-secondary
-                text-white
-                shadow-[0_8px_30px_rgba(124,58,237,0.35)]
-                transition-all
-                duration-300
-                hover:scale-105
-                hover:shadow-[0_10px_40px_rgba(124,58,237,0.45)]
-              "
+      mx-auto
+      mb-5
+      flex
+      h-16
+      w-16
+      items-center
+      justify-center
+      rounded-2xl
+      border
+      border-purple-200
+      bg-gradient-to-br
+      from-brand-primary
+      to-brand-secondary
+      text-white
+      shadow-[0_8px_30px_rgba(124,58,237,0.35)]
+      transition-all
+      duration-300
+      hover:scale-105
+      hover:shadow-[0_10px_40px_rgba(124,58,237,0.45)]
+    "
             >
-              <LoginOutlined className="text-2xl" />
+              <UserAddOutlined className="text-2xl" />
             </div>
 
-            <h1 className="font-urbanist text-2xl font-bold text-gray-900 sm:text-3xl">
-              Welcome Back
+            <h1
+              className="
+    font-urbanist
+    text-2xl
+    font-bold
+    text-gray-900
+    sm:text-3xl
+  "
+            >
+              Create Account
             </h1>
 
             <p className="mt-2 font-urbanist text-sm text-gray-500">
-              Login to your account to continue
+              Create a new account to manage your dashboard
             </p>
           </div>
-
-          {/* Login Form */}
+          {/* Register */}
           <Form
             form={form}
             layout="vertical"
-            onFinish={handleLogin}
+            onFinish={handleCreateUser}
             requiredMark={false}
-            className="font-urbanist"
           >
-            {/* Email */}
             <Form.Item
-              label={
-                <span className="font-urbanist font-medium text-gray-700">
-                  Email
-                </span>
-              }
-              name="email"
+              label="Name"
+              name="name"
               rules={[
                 {
                   required: true,
-                  message: "Please enter your email",
-                },
-                {
-                  type: "email",
-                  message: "Please enter a valid email",
+                  message: "Please enter name",
                 },
               ]}
             >
               <Input
                 size="large"
-                prefix={<MailOutlined className="mr-1 text-brand-primary/70" />}
-                placeholder="Enter your email"
-                className="
-                  !h-12
-                  !rounded-xl
-                  !border-purple-100
-                  !bg-white/60
-                  !font-urbanist
-                  !text-gray-800
-                  !shadow-[0_4px_20px_rgba(91,33,182,0.04)]
-                  placeholder:!text-gray-400
-                  hover:!border-brand-primary/40
-                  focus:!border-brand-primary
-                  focus:!bg-white/80
-                  focus:!shadow-[0_0_0_3px_rgba(124,58,237,0.08)]
-                "
+                prefix={<UserOutlined />}
+                placeholder="Enter name"
               />
             </Form.Item>
 
-            {/* Password */}
             <Form.Item
-              label={
-                <span className="font-urbanist font-medium text-gray-700">
-                  Password
-                </span>
-              }
+              label="Email"
+              name="email"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter email",
+                },
+                {
+                  type: "email",
+                  message: "Invalid email",
+                },
+              ]}
+            >
+              <Input
+                size="large"
+                prefix={<MailOutlined />}
+                placeholder="Enter email"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Password"
               name="password"
               rules={[
                 {
                   required: true,
-                  message: "Please enter your password",
+                  message: "Please enter password",
                 },
               ]}
             >
               <Input.Password
                 size="large"
-                prefix={<LockOutlined className="mr-1 text-brand-primary/70" />}
-                placeholder="Enter your password"
-                iconRender={(visible) =>
-                  visible ? (
-                    <EyeOutlined className="text-gray-400 transition hover:text-brand-primary" />
-                  ) : (
-                    <EyeInvisibleOutlined className="text-gray-400 transition hover:text-brand-primary" />
-                  )
-                }
-                className="
-                  !h-12
-                  !rounded-xl
-                  !border-purple-100
-                  !bg-white/60
-                  !font-urbanist
-                  !text-gray-800
-                  !shadow-[0_4px_20px_rgba(91,33,182,0.04)]
-                  placeholder:!text-gray-400
-                  hover:!border-brand-primary/40
-                  focus:!border-brand-primary
-                  focus:!bg-white/80
-                  focus:!shadow-[0_0_0_3px_rgba(124,58,237,0.08)]
-                "
+                prefix={<LockOutlined />}
+                placeholder="Enter password"
               />
             </Form.Item>
 
-            {/* Login Button */}
             <Button
               htmlType="submit"
               loading={isLoading}
               block
               size="large"
-              icon={isLoading && <LoginOutlined />}
+              icon={!isLoading && <LoginOutlined />}
               className="
-                !mt-3
-                !h-12
-                !rounded-xl
-                !border-0
-                !bg-gradient-to-r
-                !from-brand-primary
-                !to-brand-secondary
-                !font-urbanist
-                !text-[15px]
-                !font-bold
-                !text-white
-                !shadow-[0_8px_25px_rgba(124,58,237,0.28)]
-                !transition-all
-                !duration-300
-                hover:!scale-[1.02]
-                hover:!brightness-110
-                hover:!shadow-[0_10px_35px_rgba(124,58,237,0.40)]
-                active:!scale-[0.98]
-              "
+              !h-12
+              !rounded-xl
+              !border-0
+              !bg-gradient-to-r
+              !from-purple-600
+              !to-indigo-500
+              !font-semibold
+              !text-white
+            "
             >
-              {isLoading ? "Logging in..." : "Login"}
+              {isLoading ? "Creating..." : "Create User"}
             </Button>
           </Form>
 
@@ -349,7 +320,7 @@ const Login = () => {
           </div>
 
           <p className="mt-4 text-center font-urbanist text-xs text-gray-400">
-            Secure login · Your information is protected
+            Create a secure account · Your data is safe and protected
           </p>
         </div>
       </div>
@@ -357,4 +328,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default CreateUser;

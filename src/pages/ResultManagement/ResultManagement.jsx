@@ -183,15 +183,15 @@ const ResultManagement = () => {
       key: "section",
     },
 
-  {
-  title: "Action",
+    {
+      title: "Action",
 
-  fixed: "right",
+      fixed: "right",
 
-  render: (_, record) => (
-    <Button
-      onClick={() => openResultModal(record)}
-      className="
+      render: (_, record) => (
+        <Button
+          onClick={() => openResultModal(record)}
+          className="
       
         !cursor-pointer
         !rounded-xl
@@ -216,11 +216,11 @@ const ResultManagement = () => {
         hover:!brightness-110
         active:!scale-95
       "
-    >
-      {record.status === "Completed" ? "Edit" : "Add"}
-    </Button>
-  ),
-},
+        >
+          {record.status === "Completed" ? "Edit" : "Add"}
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -255,47 +255,6 @@ text-text-primary
             Set individual student results and send to all with one click
           </p>
         </div>
-
-        <div className="flex gap-3">
-          <Button icon={<Eye size={18} />} className="rounded-xl h-11">
-            Preview
-          </Button>
-          <Button
-            icon={<Send size={18} />}
-            loading={sendLoading}
-            disabled={sendLoading}
-            onClick={handleSendAllResults}
-            className="
-  rounded-xl
-  h-11
-  text-white
-  bg-gradient-to-r
-  from-brand-primary
-  to-brand-accent
-  border-none
-  "
-          >
-            Send Results To All
-          </Button>
-        </div>
-      </div>
-
-      <div
-        className="
-grid
-grid-cols-1
-sm:grid-cols-2
-xl:grid-cols-4
-gap-5
-"
-      >
-        <Stat icon={<Users />} title="120" text="Total Students" />
-
-        <Stat icon={<CheckCircle />} title="108" text="Results Added" />
-
-        <Stat icon={<Clock3 />} title="12" text="Pending Results" />
-
-        <Stat icon={<Send />} title="-" text="Last Sent" />
       </div>
 
       <div
@@ -377,6 +336,16 @@ mb-5
               },
             ]}
           />
+
+          <Button
+            icon={<Send size={18} />}
+            loading={sendLoading}
+            disabled={sendLoading}
+            onClick={handleSendAllResults}
+            className="!h-11 !rounded-xl !text-white !border-0 !bg-gradient-to-r !from-brand-primary !to-brand-secondary !px-5 !font-urbanist !font-semibold !shadow-lg !shadow-brand-primary/20"
+          >
+            Send Results To All
+          </Button>
         </div>
 
         <Table

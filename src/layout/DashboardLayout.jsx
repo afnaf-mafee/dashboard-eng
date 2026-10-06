@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-
+import { useDispatch } from "react-redux";
+import { logout } from "../redux/features/auth/authSlice";
 import {
   GraduationCap,
   ClipboardCheck,
@@ -11,11 +12,19 @@ import {
   ChartNoAxesCombined,
   Blocks,
   Wallet,
+  Trophy
 } from "lucide-react";
 
 const DashboardLayout = () => {
   const [open, setOpen] = useState(false);
+  const dispatch = useDispatch();
+const handleLogout = () => {
 
+  dispatch(logout());
+
+  window.location.href = "/login";
+
+};
   const navItems = [
     {
       name: "Students",
@@ -43,9 +52,9 @@ const DashboardLayout = () => {
       icon: ChartNoAxesCombined,
     },
     {
-      name: "Batch",
-      path: "/batch",
-      icon: Blocks,
+      name: "Result Ranking",
+      path: "/result-ranking",
+      icon:  Trophy,
     },
   ];
 
@@ -167,6 +176,7 @@ const DashboardLayout = () => {
           {/* Logout */}
           <div className="absolute bottom-5 left-5 right-5">
             <button
+              onClick={handleLogout}
               className="
               cursor-pointer
     group relative flex w-full items-center justify-center gap-2

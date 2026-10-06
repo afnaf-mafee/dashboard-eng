@@ -1,15 +1,25 @@
 import { baseApi } from "../../api/baseApi";
 
-
-
 export const authApiService = baseApi.injectEndpoints({
   endpoints: (build) => ({
-  
-    //  LOGIN USER
+    // CREATE ADMIN
+    createAdmin: build.mutation({
+      query: (adminData) => ({
+        url: "/auth/create-admin",
+
+        method: "POST",
+
+        body: adminData,
+      }),
+    }),
+
+    // LOGIN ADMIN
     loginAdmin: build.mutation({
       query: (loginData) => ({
-        url: "/login-dashboard",
+        url: "/auth/login",
+
         method: "POST",
+
         body: loginData,
       }),
     }),
@@ -17,7 +27,7 @@ export const authApiService = baseApi.injectEndpoints({
 });
 
 export const {
+  useCreateAdminMutation,
 
- useLoginAdminMutation
- 
+  useLoginAdminMutation,
 } = authApiService;

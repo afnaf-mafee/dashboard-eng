@@ -704,18 +704,8 @@ const Attendance = () => {
           ========================= */}
 
           <div className="mt-5">
-            <label
-              className="
-                block
-                text-sm
-                font-semibold
-                mb-2
-              "
-            >
-              Message
-            </label>
-
-            <textarea
+           
+            {/* <textarea
               value={smsMessage}
               onChange={(e) => setSmsMessage(e.target.value)}
               maxLength={200}
@@ -735,18 +725,8 @@ const Attendance = () => {
                 focus:ring-2
                 focus:ring-purple-100
               "
-            />
+            /> */}
 
-            <div
-              className="
-                text-right
-                text-xs
-                text-gray-400
-                mt-1
-              "
-            >
-              {smsMessage.length}/200
-            </div>
           </div>
 
           {/* =========================
