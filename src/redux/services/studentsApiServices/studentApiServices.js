@@ -64,7 +64,7 @@ export const studentApiService = baseApi.injectEndpoints({
 
       invalidatesTags: ["Student"],
     }),
-        // MAKE STUDENT ACTIVE
+    // MAKE STUDENT ACTIVE
     makeStudentActive: build.mutation({
       query: (id) => ({
         url: `/students/${id}/active`,
@@ -111,7 +111,18 @@ export const studentApiService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Student"],
     }),
+    // =========================
+    // TODAY COLLECTION
+    // =========================
+    getTodayCollection: build.query({
+      query: (params) => ({
+        url: "/students/today-collection",
+        method: "GET",
+        params,
+      }),
 
+      providesTags: ["Student"],
+    }),
     sendResultsToAll: build.mutation({
       query: () => ({
         url: "/students/send-results",
@@ -137,6 +148,9 @@ export const {
   // Result
   useAddResultMutation,
   useSendResultsToAllMutation,
-   // Active Status
+  // Active Status
   useMakeStudentActiveMutation,
+
+  // Today Collection
+  useGetTodayCollectionQuery,
 } = studentApiService;

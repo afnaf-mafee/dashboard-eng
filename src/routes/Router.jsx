@@ -13,6 +13,7 @@ import FeeHistory from "../pages/FeeHistory/FeeHistory";
 import CreateUser from "../pages/CreateUser/CreateUser";
 import PrivateRoute from "./PrivateRoute";
 import ResultRanking from "../pages/ResultRanking/ResultRanking";
+import TodayCollection from "../pages/Collection/TodayCollection";
 
 export const router = createBrowserRouter([
   {
@@ -61,6 +62,10 @@ export const router = createBrowserRouter([
       {
         path: "/result-ranking",
         element: <ResultRanking />,
+      },
+       {
+        path: "/today-collection",
+        element: <TodayCollection />,
       },
     ],
   },

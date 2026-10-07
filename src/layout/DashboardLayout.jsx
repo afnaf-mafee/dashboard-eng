@@ -10,9 +10,10 @@ import {
   Menu,
   X,
   ChartNoAxesCombined,
-  Blocks,
+
   Wallet,
   Trophy,
+  PlayingCardsFan 
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 
@@ -40,6 +41,11 @@ const DashboardLayout = () => {
       name: "Fee History",
       path: "/fee-history",
       icon: Wallet,
+    },
+    {
+      name: "Todays Collection",
+      path: "/today-collection",
+      icon: PlayingCardsFan ,
     },
     {
       name: "Fee Collection",
