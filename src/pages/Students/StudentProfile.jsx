@@ -17,28 +17,35 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import MonthlyFeeCard from "../../components/students/MonthlyFeeCard";
 import StudentProfileImage from "../../components/students/StudentProfileImage";
 import {
   useGetStudentByIdQuery,
   useAddInvoiceMutation,
   useMakeStudentActiveMutation,
+  useUpdateStudentMutation
 } from "../../redux/services/studentsApiServices/studentApiServices";
 import StudentProfileSkeleton from "../../components/students/StudentProfileSkeleton";
 import Invoice from "../../components/students/Invoice";
 import StudentAttendance from "../../components/students/StudentAttendance";
-import { Modal, Input, InputNumber, message, Select } from "antd";
+import { Modal, Input, InputNumber, message, Select, Form, Button } from "antd";
 import ResultCard from "../../components/students/ResultCard";
 const StudentProfile = () => {
   const [activeTab, setActiveTab] = useState("Attendance");
   const [open, setOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState("");
+  const navigate = useNavigate()
+  const [editOpen, setEditOpen] = useState(false);
+  
+  const [form] = Form.useForm();
   const [feeType, setFeeType] = useState("Select Type");
   const { id } = useParams();
   const { data, isLoading } = useGetStudentByIdQuery(id);
   const [addInvoice, { isLoading: invoiceLoading }] = useAddInvoiceMutation();
   const [makeStudentActive] = useMakeStudentActiveMutation();
+  const [updateStudent, { isLoading: updateLoading }] =
+  useUpdateStudentMutation();
   const student = data?.data || {};
 
   const handlePayment = async () => {
@@ -74,7 +81,58 @@ const StudentProfile = () => {
   if (isLoading) {
     return <StudentProfileSkeleton />;
   }
+const handleUpdateStudent = async () => {
 
+  try {
+
+    const values = await form.validateFields();
+
+
+    const updateData = {
+
+      name: values.name,
+
+      className: values.className,
+
+      batch: values.section,
+
+      time: values.time,
+
+      school: values.school,
+
+      phone: values.phone,
+
+      monthlyFee: Number(values.monthlyFee),
+
+      admissionFee: Number(values.admissionFee),
+
+    };
+
+
+    await updateStudent({
+
+      id: student._id,
+
+      data: updateData,
+
+    }).unwrap();
+
+
+    message.success("Student updated successfully");
+
+
+    setEditOpen(false);
+
+
+  } catch(error){
+
+    message.error(
+      error?.data?.message || "Update failed"
+    );
+
+  }
+
+};
   return (
     <div className="space-y-6">
       {/* Main Grid */}
@@ -181,6 +239,21 @@ const StudentProfile = () => {
                 {/* Edit Profile */}
 
                 <button
+                  onClick={() => {
+                    form.setFieldsValue({
+                      name: student?.name,
+                      className: student?.className,
+
+                      section: String(student?.batch || student?.section || ""),
+                      time: student?.time,
+                      school: student?.school,
+                      phone: student?.phone,
+                      monthlyFee: student?.monthlyFee,
+                      admissionFee: student?.admissionFee,
+                    });
+
+                    setEditOpen(true);
+                  }}
                   className="
           group
           relative
@@ -980,6 +1053,171 @@ const StudentProfile = () => {
             )}
           </button>
         </div>
+      </Modal>
+
+      <Modal
+        open={editOpen}
+        onCancel={() => setEditOpen(false)}
+        centered
+        width={600}
+        destroyOnClose
+        title={
+          <div>
+            <h2 className="font-urbanist text-xl font-bold text-text-primary">
+              Edit Student Profile
+            </h2>
+
+            <p className="mt-1 text-sm text-text-muted">
+              Update student information below
+            </p>
+          </div>
+        }
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => setEditOpen(false)}
+            className="!rounded-xl"
+          >
+            Cancel
+          </Button>,
+
+       <Button
+  key="update"
+  type="primary"
+  loading={updateLoading}
+  disabled={updateLoading}
+  onClick={handleUpdateStudent}
+  className="
+    !h-11
+    !rounded-xl
+    !border-0
+    !bg-gradient-to-r
+    !from-brand-primary
+    !to-brand-secondary
+    !font-semibold
+    !shadow-lg
+    !shadow-brand-primary/20
+    transition-all
+    duration-300
+  "
+>
+  {updateLoading ? "Updating..." : "Update Student"}
+</Button>
+        ]}
+      >
+        <Form form={form} layout="vertical" className="mt-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Form.Item label="Student Name" name="name">
+              <Input size="large" className="!rounded-xl" />
+            </Form.Item>
+
+            <Form.Item label="Class" name="className">
+              <Select
+                size="large"
+                options={[
+                  {
+                    value: "One",
+                    label: "One",
+                  },
+
+                  {
+                    value: "Two",
+                    label: "Two",
+                  },
+
+                  {
+                    value: "Three",
+                    label: "Three",
+                  },
+
+                  {
+                    value: "Four",
+                    label: "Four",
+                  },
+
+                  {
+                    value: "Five",
+                    label: "Five",
+                  },
+
+                  {
+                    value: "Six",
+                    label: "Six",
+                  },
+                ]}
+              />
+            </Form.Item>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Form.Item label="Batch" name="section">
+              <Select
+                size="large"
+                options={[
+                  {
+                    value: "1",
+                    label: "Saturday + Monday + Wednesday",
+                  },
+
+                  {
+                    value: "2",
+                    label: "Sunday + Tuesday + Thursday",
+                  },
+                ]}
+              />
+            </Form.Item>
+
+            <Form.Item label="Time" name="time">
+              <Select
+                size="large"
+                options={[
+                  {
+                    value: "A1",
+                    label: "A1",
+                  },
+
+                  {
+                    value: "A2",
+                    label: "A2",
+                  },
+
+                  {
+                    value: "A3",
+                    label: "A3",
+                  },
+
+                  {
+                    value: "A4",
+                    label: "A4",
+                  },
+
+                  {
+                    value: "A5",
+                    label: "A5",
+                  },
+                ]}
+              />
+            </Form.Item>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Form.Item label="Admission Fee" name="admissionFee">
+              <Input size="large" type="number" className="!rounded-xl" />
+            </Form.Item>
+
+            <Form.Item label="Monthly Fee" name="monthlyFee">
+              <Input size="large" type="number" className="!rounded-xl" />
+            </Form.Item>
+          </div>
+
+          <Form.Item label="School Name" name="school">
+            <Input size="large" className="!rounded-xl" />
+          </Form.Item>
+
+          <Form.Item label="Guardian Phone" name="phone">
+            <Input size="large" maxLength={11} className="!rounded-xl" />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

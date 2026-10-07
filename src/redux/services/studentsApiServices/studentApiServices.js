@@ -22,6 +22,16 @@ export const studentApiService = baseApi.injectEndpoints({
 
       providesTags: ["Student"],
     }),
+    // get fee-history---
+     getStudentsFeeHistory: build.query({
+      query: (params) => ({
+        url: "/students/fee-history",
+        method: "GET",
+        params,
+      }),
+
+      providesTags: ["Student"],
+    }),
 
     // GET SINGLE STUDENT
     getStudentById: build.query({
@@ -168,4 +178,5 @@ export const {
 
   // Today Collection
   useGetTodayCollectionQuery,
+  useGetStudentsFeeHistoryQuery
 } = studentApiService;

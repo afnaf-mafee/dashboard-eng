@@ -96,9 +96,12 @@ const Students = () => {
       className: student.className,
       monthlyFee: student.monthlyFee,
       admissionFee: student.monthlyFee,
-      section: student.section,
+      section: String(student.batch),
       guardian: student.guardian,
       phone: student.phone,
+      school : student.school,
+      time : student.time,
+      
     });
 
     setOpenModal(true);

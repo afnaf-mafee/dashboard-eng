@@ -278,22 +278,7 @@ font-semibold
         </span>
       ),
     },
-    {
-      title: "Monthly Fee",
-
-      dataIndex: "monthlyFee",
-
-      render: (value) => (
-        <span
-          className="
-font-bold
-text-purple-700
-"
-        >
-          ৳ {value}
-        </span>
-      ),
-    },
+   
 
     {
       title: "Action",

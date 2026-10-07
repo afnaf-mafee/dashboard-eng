@@ -2,13 +2,12 @@ import React, { useState } from "react";
 import { Input, Select, Table, Tag, Button, Modal, Skeleton } from "antd";
 import {
   SearchOutlined,
-  EyeOutlined,
-  DollarOutlined,
+
   TeamOutlined,
 } from "@ant-design/icons";
 
-import { useGetBatchesQuery } from "../../redux/services/batchApiServices/batchApiServices";
-import { useGetStudentsQuery } from "../../redux/services/studentsApiServices/studentApiServices";
+
+import { useGetStudentsFeeHistoryQuery,  } from "../../redux/services/studentsApiServices/studentApiServices";
 
 const FeeHistory = () => {
   const [search, setSearch] = useState("");
@@ -38,7 +37,7 @@ const FeeHistory = () => {
     }
   }
 
-  const { data: studentData, isLoading } = useGetStudentsQuery(searchParams);
+  const { data: studentData, isLoading } = useGetStudentsFeeHistoryQuery(searchParams);
   // Replace with API data
   const students = studentData?.data || [];
 
