@@ -112,6 +112,18 @@ export const studentApiService = baseApi.injectEndpoints({
       invalidatesTags: ["Student"],
     }),
     // =========================
+  // RESULT RANKING
+  // =========================
+  getResultRanking: build.query({
+    query: (params) => ({
+      url: "/students/results/ranking/date",
+      method: "GET",
+      params,
+    }),
+
+    providesTags: ["Student"],
+  }),
+    // =========================
     // TODAY COLLECTION
     // =========================
     getTodayCollection: build.query({
@@ -133,6 +145,8 @@ export const studentApiService = baseApi.injectEndpoints({
       invalidatesTags: ["Student"],
     }),
   }),
+
+  
 });
 
 export const {
@@ -148,6 +162,7 @@ export const {
   // Result
   useAddResultMutation,
   useSendResultsToAllMutation,
+  useGetResultRankingQuery,
   // Active Status
   useMakeStudentActiveMutation,
 
