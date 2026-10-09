@@ -1,45 +1,28 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
-import {
-  Button,
-  DatePicker,
-  Input,
-  message,
-  Select,
-  Spin,
-  Table,
-  Tag,
-} from "antd";
+import { Table, Button, Input, Select, Tag, Spin, message } from "antd";
 
-import {
-  CalendarOutlined,
-  SearchOutlined,
-  TeamOutlined
-} from "@ant-design/icons";
+import { SearchOutlined, TeamOutlined } from "@ant-design/icons";
 
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import { FiCopy, FiSend } from "react-icons/fi";
+
 import { GrGroup } from "react-icons/gr";
+
 import {
-  useBulkMarkAttendanceMutation,
   useGetStudentsQuery,
+  useSendMessageToStudentsMutation,
 } from "../../redux/services/studentsApiServices/studentApiServices.js";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const Attendance = () => {
+const SendMessage = () => {
   const [selectedStudents, setSelectedStudents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(dayjs().tz("Asia/Dhaka"));
-    const [smsMessage, setSmsMessage] = useState(
-    "Your child was absent today. Please contact the school if needed.",
-  );
+
   const [search, setSearch] = useState("");
+
   const [selectedClass, setSelectedClass] = useState("all");
-  const [selectedBatch, setSelectedBatch] = useState("all");
   const [selectedTime, setSelectedTime] = useState("all");
+  const [selectedBatch, setSelectedBatch] = useState("all");
+
+  const [messageText, setMessageText] = useState("");
 
   const searchParams = {
     search: search || undefined,
@@ -47,195 +30,36 @@ const Attendance = () => {
     className: selectedClass !== "all" ? selectedClass : undefined,
 
     batch: selectedBatch !== "all" ? selectedBatch : undefined,
-
-    time: selectedTime !== "all" ? selectedTime : undefined,
   };
-  if (search) {
-    if (/^\d{6}$/.test(search)) {
-      // 6 digit হলে student ID
-      searchParams.studentId = search;
-    } else if (/^01[3-9]\d{8}$/.test(search)) {
-      // BD phone হলে phone
-      searchParams.phone = search;
-    } else {
-      // অন্য কিছু হলে name
-      searchParams.name = search;
-    }
-  }
 
-  // =========================
-  // SEARCH
-  // =========================
-  const [searchText, setSearchText] = useState("");
-
-  // =========================
-  // GET STUDENTS
-  // =========================
   const { data, isLoading, isFetching } = useGetStudentsQuery(searchParams);
-  const studentData = data?.data || [];
+  const [sendMessageToStudents, { isLoading: messageLoading }] =
+    useSendMessageToStudentsMutation();
 
-  // =========================
-  // ATTENDANCE MUTATION
-  // =========================
-  const [bulkMarkAttendance, { isLoading: attendanceLoading }] =
-    useBulkMarkAttendanceMutation();
-
-  // =========================
-  // STUDENT DATA
-  // =========================
   const students = data?.data || [];
 
-  // =========================
-  // SELECTED DATE
-  // =========================
-
-  const dateString = selectedDate.tz("Asia/Dhaka").format("YYYY-MM-DD");
-  // =========================
-  // GET STUDENT ATTENDANCE
-  // FOR SELECTED DATE
-  // =========================
-  const getAttendance = (student) => {
-    if (!student?.attendance?.length) {
-      return null;
-    }
-
-    return student.attendance.find((item) => {
-      return dayjs(item.date).format("YYYY-MM-DD") === dateString;
-    });
-  };
-
-  // =========================
-  // FILTER STUDENTS
-  // =========================
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
-      const search = searchText.trim().toLowerCase();
+      const text = search.toLowerCase();
 
-      const matchesSearch =
-        !search ||
-        student.name?.toLowerCase().includes(search) ||
-        String(student.studentId).toLowerCase().includes(search) ||
-        student.phone?.includes(search);
-
-      const matchesClass =
-        selectedClass === "all" || student.className === selectedClass;
-
-      return matchesSearch && matchesClass;
+      return (
+        !text ||
+        student.name?.toLowerCase().includes(text) ||
+        String(student.studentId).includes(text) ||
+        student.phone?.includes(text)
+      );
     });
-  }, [students, searchText, selectedClass]);
+  }, [students, search]);
 
- 
-
-  // =========================
-  // TABLE ROW SELECTION
-  // =========================
   const rowSelection = {
-    selectedRowKeys: selectedStudents.map((student) => student._id),
+    selectedRowKeys: selectedStudents.map((item) => item._id),
 
-    onChange: (selectedRowKeys, selectedRows) => {
-      setSelectedStudents(selectedRows);
+    onChange: (_, rows) => {
+      setSelectedStudents(rows);
     },
   };
 
-  // =========================
-  // SELECT ALL ABSENT
-  // =========================
-  const handleSelectAllAbsent = () => {
-    const absentStudents = filteredStudents.filter((student) => {
-      const attendance = getAttendance(student);
-
-      return attendance?.status === "Absent";
-    });
-
-    setSelectedStudents(absentStudents);
-
-    if (absentStudents.length === 0) {
-      message.info("No absent students found for this date");
-
-      return;
-    }
-
-    message.success(`${absentStudents.length} absent students selected`);
-  };
-
-  // =========================
-  // CLEAR SELECTION
-  // =========================
-  const handleClearSelection = () => {
-    setSelectedStudents([]);
-  };
-
-  // =========================
-  // SEND MESSAGE
-  // =========================
-
-  const handleSendMessage = async () => {
-    try {
-      if (selectedStudents.length === 0) {
-        message.warning("Please select students first");
-
-        return;
-      }
-
-      if (!smsMessage.trim()) {
-        message.warning("Please write a message");
-
-        return;
-      }
-
-      // =========================
-      // SAVE ATTENDANCE
-      // =========================
-
-      const studentIds = selectedStudents.map((student) => student._id);
-
-      await bulkMarkAttendance({
-        students: studentIds,
-
-        date: dateString,
-
-        status: "Absent",
-
-        note: "",
-      }).unwrap();
-
-      // =========================
-      // SMS DATA
-      // =========================
-
-      const recipients = selectedStudents.map((student) => ({
-        studentId: student.studentId,
-
-        studentName: student.name,
-
-        guardian: student.guardian,
-
-        phone: student.phone,
-      }));
-
-      console.log("SMS DATA:", {
-        date: dateString,
-
-        message: smsMessage,
-
-        recipients,
-      });
-
-      message.success(`${selectedStudents.length} students attendance saved`);
-
-      setSelectedStudents([]);
-    } catch (error) {
-      message.error(error?.data?.message || "Attendance save failed");
-    }
-  };
-
-  // =========================
-  // TABLE COLUMNS
-  // =========================
   const columns = [
-    // =========================
-    // NAME
-    // =========================
     {
       title: "Student",
 
@@ -361,52 +185,61 @@ const Attendance = () => {
         );
       },
     },
-   {
-  title: "Time",
-  dataIndex: "time",
-  key: "time",
-
-  render: (time) => (
-    <span
-      className="
-      inline-flex
-      items-center
-      rounded-lg
-      border
-      border-blue-200
-      bg-gradient-to-r
-      from-blue-50
-      to-cyan-50
-      px-3
-      py-1
-      text-xs
-      font-bold
-      text-blue-700
-      shadow-[0_3px_12px_rgba(59,130,246,0.2)]
-      transition-all
-      duration-300
-      hover:-translate-y-0.5
-      hover:shadow-[0_6px_18px_rgba(59,130,246,0.3)]
-      "
-    >
-      {time}
-    </span>
-  ),
-}
-
   ];
 
-  // =========================
-  // LOADING
-  // =========================
+  const handleSendMessage = async () => {
+    if (!selectedStudents.length) {
+      message.warning("Please select at least one student.");
+      return;
+    }
+
+    if (!messageText.trim()) {
+      message.warning("Please write a message first.");
+      return;
+    }
+
+    const finalMessage = `
+Dear Guardian,
+
+${messageText.trim()}
+
+Thank you,
+ELC Office.
+`;
+
+    try {
+      const result = await sendMessageToStudents({
+        students: selectedStudents.map((student) =>
+          typeof student === "string" ? student : student._id,
+        ),
+
+        messageText: finalMessage,
+      }).unwrap();
+
+      message.success({
+        content:
+          result.message ||
+          `${selectedStudents.length} messages sent successfully.`,
+        duration: 3,
+      });
+
+      setSelectedStudents([]);
+
+      setMessageText("");
+    } catch (error) {
+      message.error({
+        content: error?.data?.message || "Failed to send messages.",
+        duration: 3,
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div
         className="
-          flex
-          justify-center
-          py-20
-        "
+flex justify-center py-20
+"
       >
         <Spin size="large" />
       </div>
@@ -415,67 +248,38 @@ const Attendance = () => {
 
   return (
     <div className="w-full">
-      {/* =========================
-          HEADER
-      ========================= */}
+      {/* HEADER */}
 
       <div
         className="
-          flex
-          flex-col
-          md:flex-row
-          justify-between
-          md:items-center
-          gap-4
-          mb-6
-        "
+flex
+justify-between
+items-center
+mb-6
+"
       >
         <div>
           <h1
             className="
-              text-3xl
-              font-bold
-              text-gray-900
-            "
+text-3xl
+font-bold
+text-gray-900
+"
           >
-            Attendance
+            Send Message
           </h1>
 
           <p
             className="
-              text-gray-500
-              mt-1
-            "
+text-gray-500 mt-1
+"
           >
-            Mark attendance and notify selected guardians
+            Send bulk message to guardians
           </p>
         </div>
-
-        {/* DATE */}
-
-        <DatePicker
-          size="large"
-          value={selectedDate}
-          onChange={(date) => {
-            if (!date) {
-              return;
-            }
-
-            setSelectedDate(date.tz("Asia/Dhaka"));
-
-            // Date change হলে
-            // selection clear
-            setSelectedStudents([]);
-          }}
-          format="DD MMM YYYY"
-          suffixIcon={<CalendarOutlined />}
-          className="!rounded-xl"
-        />
       </div>
 
-      {/* =========================
-          SEARCH + FILTER
-      ========================= */}
+      {/* SEARCH PANEL */}
       <div className="mb-5 rounded-2xl border border-border bg-surface-soft p-4 backdrop-blur-xl">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <Input
@@ -648,43 +452,36 @@ const Attendance = () => {
         text-transparent
       "
               >
-                {data?.count || studentData?.data?.length || 0}
+                {data?.count}
               </span>
 
+             
             </div>
           </div>
         </div>
       </div>
 
-      {/* =========================
-          CONTENT
-      ========================= */}
-
       <div
         className="
-          mt-5
-          grid
-          grid-cols-1
-          xl:grid-cols-4
-          gap-5
-        "
+grid
+xl:grid-cols-4
+gap-5
+"
       >
-        {/* =========================
-            TABLE
-        ========================= */}
+        {/* TABLE */}
 
         <div
           className="
-            xl:col-span-3
-            rounded-[28px]
-            border
-            border-border
-            bg-surface-soft/80
-            backdrop-blur-2xl
-            p-5
-            shadow-[0_20px_60px_rgba(91,33,182,0.10)]
-            overflow-hidden
-          "
+xl:col-span-3
+rounded-[28px]
+border
+border-border
+bg-surface-soft/80
+backdrop-blur-2xl
+p-5
+shadow-[0_20px_60px_rgba(91,33,182,0.10)]
+overflow-hidden
+"
         >
           <Table
             columns={columns}
@@ -702,69 +499,62 @@ const Attendance = () => {
           />
         </div>
 
-        {/* =========================
-            MESSAGE PANEL
-        ========================= */}
+        {/* MESSAGE PANEL */}
 
         <div
           className="
-            rounded-[28px]
-            border
-            border-border
-            bg-surface-soft/80
-            backdrop-blur-2xl
-            p-5
-            shadow-[0_20px_60px_rgba(91,33,182,0.10)]
-          "
+rounded-[28px]
+border
+border-white/40
+bg-white/40
+backdrop-blur-2xl
+p-5
+shadow-[0_20px_60px_rgba(91,33,182,0.15)]
+"
         >
           <div
             className="
-              flex
-              items-center
-              gap-3
-              mb-5
-            "
+flex
+items-center
+gap-3
+mb-5
+"
           >
             <div
               className="
-                w-10
-                h-10
-                rounded-xl
-                flex
-                items-center
-                justify-center
-                bg-purple-100
-                text-purple-700
-              "
+w-10
+h-10
+rounded-xl
+flex
+items-center
+justify-center
+bg-purple-100
+text-purple-700
+"
             >
-              <FiSend size={19} />
+              <FiSend />
             </div>
 
             <div>
               <h2
                 className="
-                  text-xl
-                  font-bold
-                  text-gray-900
-                "
+text-xl
+font-bold
+"
               >
                 Send Message
               </h2>
 
               <p
                 className="
-                  text-xs
-                  text-gray-500
-                "
+text-xs
+text-gray-500
+"
               >
                 Selected guardians
               </p>
             </div>
           </div>
-
-          {/* =========================
-              SELECTED COUNT
-          ========================= */}
 
           <div
             className="
@@ -802,84 +592,112 @@ const Attendance = () => {
               </p>
             </div>
           </div>
-
-          {/* =========================
-              SELECTED STUDENT LIST
-          ========================= */}
-
-         
-
-          {/* =========================
-              MESSAGE
-          ========================= */}
-
-          <div className="mt-5">
-            {/* <textarea
-              value={smsMessage}
-              onChange={(e) => setSmsMessage(e.target.value)}
-              maxLength={200}
-              placeholder="Write your message..."
+          {selectedStudents.length > 0 && (
+            <div
               className="
-                w-full
-                h-32
-                rounded-xl
-                border
-                border-gray-300
-                bg-white/70
-                p-3
-                text-sm
-                outline-none
-                resize-none
-                focus:border-purple-500
-                focus:ring-2
-                focus:ring-purple-100
+                mt-4
+                max-h-40
+                overflow-y-auto
+                space-y-2
               "
-            /> */}
-          </div>
+            >
+              {selectedStudents.map((student) => (
+                <div
+                  key={student._id}
+                  className="
+                      flex
+                      items-center
+                      justify-between
+                      rounded-xl
+                      bg-white/60
+                      border
+                      border-gray-200
+                      px-3
+                      py-2
+                    "
+                >
+                  <div>
+                    <p
+                      className="
+                          text-sm
+                          font-semibold
+                        "
+                    >
+                      {student.name}
+                    </p>
 
-          {/* =========================
-              SEND BUTTON
-          ========================= */}
+                    <p
+                      className="
+                          text-xs
+                          text-gray-500
+                        "
+                    >
+                      {student.phone}
+                    </p>
+                  </div>
+
+                  <Tag
+                    style={{
+                      border: "1px solid #bbf7d0",
+                      borderRadius: "999px",
+                      padding: "2px 12px",
+                      background: "#f0fdf4",
+                      color: "#15803d",
+                      fontWeight: 700,
+                      fontSize: "12px",
+                      boxShadow: "0 4px 12px rgba(22,163,74,0.15)",
+                    }}
+                  >
+                    Selected
+                  </Tag>
+                </div>
+              ))}
+            </div>
+          )}
+          <textarea
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            placeholder="
+Write your message...
+"
+            className="
+mt-5
+w-full
+h-36
+rounded-xl
+border
+border-gray-300
+bg-white/70
+p-3
+resize-none
+outline-none
+focus:border-purple-500
+"
+          />
 
           <Button
             type="primary"
             block
             size="large"
             icon={<FiSend />}
-            disabled={selectedStudents.length === 0 || !smsMessage.trim()}
             onClick={handleSendMessage}
             className="
-              !mt-3
-              !h-11
-              !rounded-xl
-              !bg-purple-600
-              !border-purple-600
-              !font-semibold
-            "
+!mt-4
+!h-11
+!
+rounded-xl
+!bg-purple-600
+!border-purple-600
+!font-semibold
+shadow-lg
+"
           >
             Send Message
           </Button>
-
-          {/* =========================
-              INFO
-          ========================= */}
-
-          <div
-            className="
-              mt-4
-              rounded-xl
-              bg-purple-50
-              p-3
-              text-xs
-              text-gray-600
-            "
-          >
-            ⓘ Attendance is saved directly to each student's profile.
-          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default Attendance;
+export default SendMessage;

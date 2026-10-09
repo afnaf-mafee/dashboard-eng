@@ -676,7 +676,7 @@ const Students = () => {
     border
     border-white/40
     bg-white/40
-    px-4
+    px-3
     shadow-[0_8px_30px_rgba(124,58,237,0.15)]
     backdrop-blur-xl
     transition-all
@@ -745,15 +745,7 @@ const Students = () => {
                 {studentData?.count || studentData?.data?.length || 0}
               </span>
 
-              <span
-                className="
-        text-sm
-        font-semiboldF
-        text-gray-600
-      "
-              >
-                Students
-              </span>
+              
             </div>
           </div>
         </div>

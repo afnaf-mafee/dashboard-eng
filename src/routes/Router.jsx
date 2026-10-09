@@ -14,6 +14,7 @@ import CreateUser from "../pages/CreateUser/CreateUser";
 import PrivateRoute from "./PrivateRoute";
 import ResultRanking from "../pages/ResultRanking/ResultRanking";
 import TodayCollection from "../pages/Collection/TodayCollection";
+import SendMessage from "../pages/SendMessage/SendMessage";
 
 export const router = createBrowserRouter([
   {
@@ -66,6 +67,9 @@ export const router = createBrowserRouter([
        {
         path: "/today-collection",
         element: <TodayCollection />,
+      }, {
+        path: "/message",
+        element: <SendMessage />,
       },
     ],
   },

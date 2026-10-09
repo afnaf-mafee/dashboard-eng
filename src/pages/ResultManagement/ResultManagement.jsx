@@ -124,11 +124,7 @@ const ResultManagement = () => {
   };
 
   const columns = [
-    {
-      title: "#",
-      dataIndex: "",
-      width: 60,
-    },
+   
     {
       title: "Name",
       dataIndex: "name",
@@ -193,24 +189,7 @@ const ResultManagement = () => {
         </Tag>
       ),
     },
-    {
-      title: "Class",
-      dataIndex: "className",
-
-      render: (value) => (
-        <Tag
-          className="
-rounded-lg
-px-3
-py-1
-font-semibold
-"
-          color="purple"
-        >
-          {value}
-        </Tag>
-      ),
-    },
+     
     {
       title: "Batch",
       dataIndex: "batch",
@@ -509,9 +488,6 @@ mb-5
                     {studentData?.count || studentData?.data?.length || 0}
                   </span>
 
-                  <span className="text-sm font-semibold text-gray-600">
-                    Students
-                  </span>
                 </div>
               </div>
 

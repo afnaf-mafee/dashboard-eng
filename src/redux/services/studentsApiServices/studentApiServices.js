@@ -23,7 +23,7 @@ export const studentApiService = baseApi.injectEndpoints({
       providesTags: ["Student"],
     }),
     // get fee-history---
-     getStudentsFeeHistory: build.query({
+    getStudentsFeeHistory: build.query({
       query: (params) => ({
         url: "/students/fee-history",
         method: "GET",
@@ -121,18 +121,25 @@ export const studentApiService = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Student"],
     }),
-    // =========================
-  // RESULT RANKING
-  // =========================
-  getResultRanking: build.query({
-    query: (params) => ({
-      url: "/students/results/ranking/date",
-      method: "GET",
-      params,
+    sendMessageToStudents: build.mutation({
+      query: (data) => ({
+        url: "/students/bulk-message",
+        method: "POST",
+        body: data,
+      }),
     }),
+    // =========================
+    // RESULT RANKING
+    // =========================
+    getResultRanking: build.query({
+      query: (params) => ({
+        url: "/students/results/ranking/date",
+        method: "GET",
+        params,
+      }),
 
-    providesTags: ["Student"],
-  }),
+      providesTags: ["Student"],
+    }),
     // =========================
     // TODAY COLLECTION
     // =========================
@@ -155,8 +162,6 @@ export const studentApiService = baseApi.injectEndpoints({
       invalidatesTags: ["Student"],
     }),
   }),
-
-  
 });
 
 export const {
@@ -175,8 +180,8 @@ export const {
   useGetResultRankingQuery,
   // Active Status
   useMakeStudentActiveMutation,
-
+useSendMessageToStudentsMutation,
   // Today Collection
   useGetTodayCollectionQuery,
-  useGetStudentsFeeHistoryQuery
+  useGetStudentsFeeHistoryQuery,
 } = studentApiService;

@@ -10,10 +10,11 @@ import {
   Menu,
   X,
   ChartNoAxesCombined,
-
+MessageCircle,
   Wallet,
   Trophy,
-  PlayingCardsFan 
+  PlayingCardsFan ,
+  Birdhouse
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 
@@ -27,6 +28,11 @@ const DashboardLayout = () => {
     window.location.href = "/login";
   };
   const navItems = [
+    {
+      name: "Home",
+      path: "/",
+      icon: Birdhouse ,
+    },
     {
       name: "Students",
       path: "/students",
@@ -61,6 +67,11 @@ const DashboardLayout = () => {
       name: "Result Ranking",
       path: "/result-ranking",
       icon: Trophy,
+    },
+    {
+      name: "Message",
+      path: "/message",
+      icon: MessageCircle ,
     },
   ];
 
